@@ -20,8 +20,6 @@ public class JavaFX extends Application {
     final int HEIGHT = 1000;
     @Override
     public void start(Stage stage) throws IOException {
-
-
         Pane root = new Pane();
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
@@ -33,25 +31,7 @@ public class JavaFX extends Application {
 
 
 
-        scene.setOnKeyPressed(event -> {
 
-
-            switch (event.getCode()) {
-
-
-                /*//case d = debug,
-                case F -> montrerVecteur = !montrerVecteur; // Correction de l'erreur de toggle
-                case L -> lancerTransition();
-                case K -> Jeux.nbJournaux = 0;
-                case Q -> Jeux.nbJournaux += 10;
-                case I -> Jeux.particulesTest();
-                case ESCAPE -> Platform.exit();*/
-            }
-        });
-
-        scene.setOnKeyReleased(event -> {
-
-        });
 
         AnimationTimer timer = new AnimationTimer() {
 
