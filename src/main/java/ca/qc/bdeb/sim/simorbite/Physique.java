@@ -42,6 +42,11 @@ public class Physique {
     double anomalieExcentrique = calculApproximationAnomalieExcentrique();
     double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
 
+    Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
+    //debug distance = norme de vecteurRayon
+    Point2D position = ancre.add(vecteurRayon);
+
+
     public double calculApproximationAnomalieExcentrique(){
         double u = anomalieMoyenne /(1-e);
         double uAncien = 0; //Initialise
@@ -49,7 +54,6 @@ public class Physique {
         do{
             uAncien = u;
             u = e*sin(u) + anomalieMoyenne;
-
         } while(Math.abs(u - uAncien) < DEGREEPRECISION);
 
         return u;
