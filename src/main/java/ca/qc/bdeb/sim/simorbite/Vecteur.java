@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 
 public class Vecteur {
 
-        /** Position de l'objet (coin haut-gauche). */
+        /** Position de l'objet (Centre). */
         protected Point2D position;
         /** Vélocité de l'objet. */
         protected Point2D velocite;
@@ -19,9 +19,9 @@ public class Vecteur {
         /**  Constructeur d'un objet du jeu. */
 
 
-        public Vecteur(double x, double y, double largeur, double hauteur) {
-            this.position = new Point2D(x, y);
-            this.taille = new Point2D(largeur, hauteur);
+        public Vecteur(double x, double y, double rayon) {
+            this.position = new Point2D(x, y );
+            this.taille = new Point2D(rayon, rayon);
             this.velocite = Point2D.ZERO;
             this.acceleration = Point2D.ZERO;
         }

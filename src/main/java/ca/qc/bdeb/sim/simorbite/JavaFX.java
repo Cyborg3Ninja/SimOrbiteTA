@@ -13,17 +13,29 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import static javafx.scene.paint.Color.WHITE;
+import static javafx.scene.paint.Color.YELLOW;
+
 public class JavaFX extends Application {
 
     final int WIDTH = 900;
-    final int HEIGHT = 700;
+    final int HEIGHT = 600;
 
-    private Etoile soleil;
-    private Planete terre;
+    // Position du soleil (centre écran)
+    double centreX = WIDTH / 2.0;
+    double centreY = HEIGHT / 2.0;
 
-    private Physique physique;
 
-    private double tempsSimulation = 0;
+    //Distance entre centre et le foyer
+    double c = Physique.DGA / Constantes.ECHELLE * Physique.e;
+    private Etoile soleil = new Etoile(centreX - c - 10, centreY - 10, 20);
+    private Planete terre = new Planete(0, 0, 10);
+
+    Point2D ancre = new Point2D(centreX , centreY);
+    Physique physique = new Physique(ancre, 0, 0);
+
+    private static double tempsSimulation = 0;
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -44,18 +56,13 @@ public class JavaFX extends Application {
         // Initialisations
         ArrierePlan arrierePlan = new ArrierePlan();
 
-        // Position du soleil (centre écran)
-        double centreX = WIDTH / 2.0;
-        double centreY = HEIGHT / 2.0;
 
-        soleil = new Etoile(centreX - 10, centreY - 10, 20);
 
         // Position de référence pour la physique
-        Point2D ancre = new Point2D(centreX, centreY);
+        //Point2D ancre = new Point2D(soleil.getX() + 10, soleil.getY() + 10);
+        //Point2D ancre = new Point2D(centreX, centreY);
 
-        physique = new Physique(ancre, 0, 0);
-
-        terre = new Planete(0, 0, 10);
+        physique = new Physique(ancre, tempsSimulation, 0);
 
         AnimationTimer timer = new AnimationTimer() {
 
@@ -90,8 +97,8 @@ public class JavaFX extends Application {
 
         Point2D position = physique.position(tempsSimulation);
 
-        terre.setX(position.getX());
-        terre.setY(position.getY());
+        terre.setX(position.getX() - terre.getTaille().getX()/2 + c);
+        terre.setY(position.getY() - terre.getTaille().getY()/2);
 
         /*double centreX = WIDTH / 2.0;
         double centreY = HEIGHT / 2.0;
@@ -109,7 +116,21 @@ public class JavaFX extends Application {
 
         gc.clearRect(0, 0, WIDTH, HEIGHT);
 
-        gc.setFill(Color.YELLOW);
+        gc.setStroke(Color.WHITE);
+        gc.setLineWidth(1);
+
+        double a = Physique.DGA / Constantes.ECHELLE;
+        double b = Physique.DPA / Constantes.ECHELLE;
+
+        gc.strokeOval(
+                centreX - a, // décalage horizontal pour placer le foyer au Soleil
+                centreY - b,     // verticale centrée
+                a * 2,
+                b * 2
+        );
+
+
+        gc.setFill(YELLOW);
         soleil.draw(gc);
 
         gc.setFill(Color.BLUE);
@@ -117,6 +138,9 @@ public class JavaFX extends Application {
 
     }
 
+    public static double getTempsSimulation(){
+        return tempsSimulation;
+    }
 
     public static void main(String[] args) {
         launch();

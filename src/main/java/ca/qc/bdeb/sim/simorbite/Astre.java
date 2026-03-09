@@ -5,12 +5,9 @@ import javafx.scene.canvas.GraphicsContext;
 public class Astre extends Vecteur {
 
     protected double masse;
-    protected double rayon;
-
-    public Astre(double x, double y, double largeur, double hauteur, double masse, double rayon) {
-        super(x, y, largeur, hauteur);
+    public Astre(double x, double y, double masse, double rayon) {
+        super(x, y, rayon);
         this.masse = masse;
-        this.rayon = rayon;
     }
 
     @Override
@@ -18,9 +15,10 @@ public class Astre extends Vecteur {
         gc.fillOval(getX(), getY(), getLargeur(), getHauteur());
     }
 
-    public double masseToRayon(double masse, int constante){
+    public void masseToRayon(double masse, int constante){
     //9.807 = G * Mt / Rt^2 terre
-
-        return rayon;
+//return rayon
     }
+
+
 }
