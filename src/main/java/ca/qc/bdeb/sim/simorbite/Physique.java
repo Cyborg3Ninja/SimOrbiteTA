@@ -19,6 +19,7 @@ public class Physique {
     final double DEGREEPRECISION = 0.005;
     final double GM = 398600.4418; //Parametre gravitionnelle standard
     final double PERIODETHEORIQUE = 31558145;
+
     //Demie grand axe de la terre autour du soleil
     final double RAYONPERIASTRE = 147099894;
     final double RAYONAPOASTRE = 149598023;
@@ -39,12 +40,11 @@ public class Physique {
     double moyenneMouvement = 2 * PI / PERIODETHEORIQUE;
     double deltaT = temps - tempsP; //a revoir
     double anomalieMoyenne = moyenneMouvement * (deltaT);
-    //double anomalieExcentrique = calculApproximationAnomalieExcentrique();
-    //double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
+    double anomalieExcentrique = calculApproximationAnomalieExcentrique(anomalieMoyenne /(1-e));
+    double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
 
-    //Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
-    //debug distance = norme de vecteurRayon
-    //Point2D position = ancre.add(vecteurRayon);
+    Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
+    Point2D position = ancre.add(vecteurRayon);
 
 
     public double calculApproximationAnomalieExcentrique(double M) {
@@ -81,9 +81,9 @@ public class Physique {
     return Math.sqrt(p.getX() * p.getX() + p.getY()*p.getY());
     }
 
-    //public double calculDistance (){
-   //     return parametreEllipse/(1+e*cos(anomalieVraie - angleP));
-  //  }
+    public double calculDistance (){
+        return parametreEllipse/(1+e*cos(anomalieVraie - angleP));
+    }
 
     public double forceTerreSoleil(double distance){
         return -GTERRESOLEIL * MSOLEIL * MTERRE / (distance * distance);
@@ -99,6 +99,10 @@ public class Physique {
 
     public double calculPeriode(){
         return 2*PI*Math.sqrt(DGA*DGA*DGA/GM);
+    }
+
+    public double normeRayon(){
+        return Math.sqrt(vecteurRayon.getX()*vecteurRayon.getX() + vecteurRayon.getY()*vecteurRayon.getX());
     }
 
 
