@@ -33,39 +33,57 @@ public class Physique {
     double parametreEllipse = DGA * (1-e * e);
     double angleP = 0; //angle du periastre
 
-    double distance = calculDistance();
-    double force = forceTerreSoleil(distance);
+    //double distance = calculDistance();
+    //double force = forceTerreSoleil(distance);
 
     double moyenneMouvement = 2 * PI / PERIODETHEORIQUE;
     double deltaT = temps - tempsP; //a revoir
     double anomalieMoyenne = moyenneMouvement * (deltaT);
-    double anomalieExcentrique = calculApproximationAnomalieExcentrique();
-    double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
+    //double anomalieExcentrique = calculApproximationAnomalieExcentrique();
+    //double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
 
-    Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
+    //Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
     //debug distance = norme de vecteurRayon
-    Point2D position = ancre.add(vecteurRayon);
+    //Point2D position = ancre.add(vecteurRayon);
 
 
-    public double calculApproximationAnomalieExcentrique(){
-        double u = anomalieMoyenne /(1-e);
-        double uAncien = 0; //Initialise
+    public double calculApproximationAnomalieExcentrique(double M) {
 
-        do{
+        double u = M;
+        double uAncien;
+
+        do {
             uAncien = u;
-            u = e*sin(u) + anomalieMoyenne;
-        } while(Math.abs(u - uAncien) < DEGREEPRECISION);
+            u = e * Math.sin(u) + M;
+        } while (Math.abs(u - uAncien) > DEGREEPRECISION);
 
         return u;
+    }
+
+
+    public Point2D position(double tempsActuel) {
+
+        double deltaT = tempsActuel - tempsP;
+
+        double anomalieMoyenne = moyenneMouvement * deltaT;
+
+        double E = calculApproximationAnomalieExcentrique(anomalieMoyenne);
+
+        double x = DGA * (Math.cos(E) - e);
+        double y = -DGA * (Math.sqrt(1 - e * e) * Math.sin(E));
+
+        Point2D vecteurRayon = new Point2D(x, y);
+
+        return ancre.add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE)); //appliqué l'échelle avant d'add l'ancre
     }
 
     public static double norme(Point2D p){
     return Math.sqrt(p.getX() * p.getX() + p.getY()*p.getY());
     }
 
-    public double calculDistance (){
-        return parametreEllipse/(1+e*cos(anomalieVraie - angleP));
-    }
+    //public double calculDistance (){
+   //     return parametreEllipse/(1+e*cos(anomalieVraie - angleP));
+  //  }
 
     public double forceTerreSoleil(double distance){
         return -GTERRESOLEIL * MSOLEIL * MTERRE / (distance * distance);
