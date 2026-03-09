@@ -7,8 +7,13 @@ import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Slider;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -18,11 +23,11 @@ import static javafx.scene.paint.Color.YELLOW;
 
 public class JavaFX extends Application {
 
-    final int WIDTH = 900;
+    static final int WIDTH = 900;
     final int HEIGHT = 600;
 
-    // Position du soleil (centre écran)
-    double centreX = WIDTH / 2.0;
+    // Position du soleil (centre simulation)
+    double centreX = getWidthSimulation() / 2.0;
     double centreY = HEIGHT / 2.0;
 
 
@@ -35,16 +40,36 @@ public class JavaFX extends Application {
     Physique physique = new Physique(ancre, 0, 0);
 
     private static double tempsSimulation = 0;
+    private static double accelerationTemps = 2000000;
+
+    VBox menu;
+    Slider sliderTemps;
 
 
     @Override
     public void start(Stage stage) throws IOException {
+        BorderPane root  = new BorderPane();
+        Pane simulation = new Pane();
+        simulation.setStyle("-fx-background-color: #000000;");
+        simulation.setPrefWidth(WIDTH - WIDTH/4);
 
-        Pane root = new Pane();
+        menu = new VBox(15); // 15 est l'espacement entre les éléments
+        menu.setStyle("-fx-background-color: #2c3e50;");
+        menu.setPrefWidth(WIDTH/4);   // Largeur fixe pour le menu
+        menu.setPadding(new javafx.geometry.Insets(20)); // Marges intérieures
+
+        HBox aTemps = new HBox();
+        Text textTemps = new Text("Acceleration du temps");
+        sliderTemps = new Slider(0,50, 1);
+        aTemps.getChildren().addAll(textTemps, sliderTemps);
+        sliderTemps.setShowTickLabels(true);
+        menu.getChildren().addAll(aTemps);
+
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
 
-        Canvas canvas = new Canvas(WIDTH, HEIGHT);
+        Canvas canvas = new Canvas(WIDTH-50, HEIGHT);
         GraphicsContext context = canvas.getGraphicsContext2D();
+
 
 
         scene.setOnKeyPressed(e -> {
@@ -75,7 +100,7 @@ public class JavaFX extends Application {
                 dernierTemps = temps;
 
                 // accélérer le temps pour l'animation
-                tempsSimulation += deltaTemps *  2000000;
+                tempsSimulation += deltaTemps *  accelerationTemps;
 
                 update();
                 draw(context);
@@ -84,8 +109,9 @@ public class JavaFX extends Application {
 
         timer.start();
 
-        root.getChildren().add(canvas);
-
+        simulation.getChildren().add(canvas);
+        root.setCenter(simulation);
+        root.setRight(menu);
         stage.setTitle("Simulation orbite");
         stage.setResizable(true);
         stage.setScene(scene);
@@ -100,9 +126,9 @@ public class JavaFX extends Application {
         terre.setX(position.getX() - terre.getTaille().getX()/2 + c);
         terre.setY(position.getY() - terre.getTaille().getY()/2);
 
-        /*double centreX = WIDTH / 2.0;
-        double centreY = HEIGHT / 2.0;
+        accelerationTemps = sliderTemps.getValue() * 2000000;
 
+        /*
         // test ellipse simple (temporaire)
         double a = 200; // demi grand axe
         double b = 180; // demi petit axe
@@ -141,6 +167,12 @@ public class JavaFX extends Application {
     public static double getTempsSimulation(){
         return tempsSimulation;
     }
+    public static double getWidthSimulation(){
+        return WIDTH - WIDTH/4;
+    }
+
+
+
 
     public static void main(String[] args) {
         launch();
