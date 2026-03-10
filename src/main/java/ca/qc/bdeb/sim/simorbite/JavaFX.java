@@ -51,16 +51,17 @@ public class JavaFX extends Application {
         BorderPane root  = new BorderPane();
         Pane simulation = new Pane();
         simulation.setStyle("-fx-background-color: #000000;");
-        simulation.setPrefWidth(WIDTH - WIDTH/4);
+        simulation.setPrefWidth(getWidthSimulation());
 
         menu = new VBox(15); // 15 est l'espacement entre les éléments
         menu.setStyle("-fx-background-color: #2c3e50;");
-        menu.setPrefWidth(WIDTH/4);   // Largeur fixe pour le menu
+        menu.setPrefWidth(WIDTH/3);   // Largeur fixe pour le menu
         menu.setPadding(new javafx.geometry.Insets(20)); // Marges intérieures
 
         HBox aTemps = new HBox();
-        Text textTemps = new Text("Acceleration du temps");
-        sliderTemps = new Slider(0,50, 1);
+        Text textTemps = new Text("Accélération du temps");
+        textTemps.setFill(WHITE);
+        sliderTemps = new Slider(0,10, 1);
         aTemps.getChildren().addAll(textTemps, sliderTemps);
         sliderTemps.setShowTickLabels(true);
         menu.getChildren().addAll(aTemps);
@@ -168,7 +169,7 @@ public class JavaFX extends Application {
         return tempsSimulation;
     }
     public static double getWidthSimulation(){
-        return WIDTH - WIDTH/4;
+        return WIDTH - WIDTH/3;
     }
 
 
