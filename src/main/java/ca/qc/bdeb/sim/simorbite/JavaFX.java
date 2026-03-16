@@ -7,9 +7,8 @@ import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -19,6 +18,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static javafx.scene.paint.Color.*;
 
@@ -31,22 +31,32 @@ public class JavaFX extends Application {
     double centreX = getWidthSimulation() / 2.0;
     double centreY = HEIGHT / 2.0;
 
+    private ArrayList<Point2D> traceT = new ArrayList<>();
+    private ArrayList<Point2D> traceL = new ArrayList<>();
+
+    private Point2D positionInitiale = null;
+    private boolean orbiteComplete = false;
+
+
+    private Satellite terre = new Satellite(0, 0, 10, 147099894, 149598023,
+            5.972 * Math.pow(10, 24), 1.989 * Math.pow(10, 30),
+            398600.4418,31558145);
+    private Satellite lune = new Satellite(terre.getPosition().getX(),terre.getPosition().getY(),5, 356400 * 50 , 406700 * 50,
+            7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800);
+
     Point2D ancre = new Point2D(centreX , centreY);
-    Physique physique = new Physique(ancre, 0, 0);
+    Physique physiqueT = new Physique(terre, ancre, 0, 0);
+    Physique physiqueL = new Physique(lune, terre.getPosition(), 0,0);
 
-    //Distance entre centre et le foyer
-    double c = physique.DGA / Constantes.ECHELLE * physique.e;
-    private Etoile soleil = new Etoile(centreX - c - 10, centreY - 10, 20);
-    private Planete terre = new Planete(0, 0, 10);
-    private Satellite lune = new Satellite(0,0,5);
-
+    //10 = 20/2
+    private CorpsCentral soleil = new CorpsCentral(centreX - physiqueT.getC() - 10, centreY - 10, 20);
 
     private static double tempsSimulation = 0;
     private static double accelerationTemps = 2000000;
 
     VBox menu;
     Slider sliderTemps;
-
+    Button boutonEffacer;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -64,10 +74,26 @@ public class JavaFX extends Application {
         HBox aTemps = new HBox();
         Text textTemps = new Text("Accélération du temps");
         textTemps.setFill(WHITE);
-        sliderTemps = new Slider(0,10, 1);
+        sliderTemps = new Slider(1,10, 1);
         aTemps.getChildren().addAll(textTemps, sliderTemps);
         sliderTemps.setShowTickLabels(true);
-        menu.getChildren().addAll(aTemps);
+
+        boutonEffacer = new Button("Effacer orbite");
+        boutonEffacer.setStyle("-fx-font-size: 14px; -fx-background-color: #e74c3c; -fx-text-fill: white;");
+        boutonEffacer.setOnAction(e -> {
+
+
+            traceT.clear();
+            traceL.clear();
+            orbiteComplete = false;
+            positionInitiale = null;
+
+
+        });
+
+
+        menu.getChildren().addAll(aTemps, boutonEffacer);
+
 
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
 
@@ -87,11 +113,13 @@ public class JavaFX extends Application {
 
 
 
-        // Position de référence pour la physique
+        // Position de référence pour la physiqueT
         //Point2D ancre = new Point2D(soleil.getX() + 10, soleil.getY() + 10);
         //Point2D ancre = new Point2D(centreX, centreY);
 
-        physique = new Physique(ancre, tempsSimulation, 0);
+        //Physique de terre- soleil
+        physiqueT = new Physique(terre, ancre, tempsSimulation, 0);
+        physiqueL = new Physique(lune, terre.getPosition(), tempsSimulation, 0);
 
         AnimationTimer timer = new AnimationTimer() {
 
@@ -124,60 +152,80 @@ public class JavaFX extends Application {
     }
 
     private void update() {
+        Point2D positionT = physiqueT.position(tempsSimulation);
 
-        Point2D positionT = physique.position(tempsSimulation);
-
-        terre.setX(positionT.getX() - terre.getTaille().getX()/2 + c);
+        terre.setX(positionT.getX() - terre.getTaille().getX()/2 + physiqueT.getC());
         terre.setY(positionT.getY() - terre.getTaille().getY()/2);
 
-        Point2D positionL = physique.position(tempsSimulation);
+        Point2D positionL = physiqueL.position(tempsSimulation);
+        physiqueL.setAncre(terre.getPosition());
 
-        lune.setX(positionL.getX() - lune.getTaille().getX()/2); //+ foyer
-        lune.setY(positionT.getY() - lune.getTaille().getY()/2);
+        //pas de c car pas visible
+        lune.setX(positionL.getX() + terre.getTaille().getX()/2 - lune.getTaille().getX()/2);
+        lune.setY(positionL.getY() + terre.getTaille().getY()/2 - lune.getTaille().getY()/2);
 
+        physiqueL.setAncre(terre.getPosition());
 
+        lune.setX(positionL.getX() + terre.getTaille().getX()/2 - lune.getTaille().getX()/2);
+        lune.setY(positionL.getY() + terre.getTaille().getY()/2 - lune.getTaille().getY()/2);
+
+        if (positionInitiale == null) {
+            positionInitiale = positionT;
+        }
+
+        if (!orbiteComplete) {
+            traceT.add(positionT);
+
+            if (positionT.distance(positionInitiale) < 2 && traceT.size() > 100) {
+                orbiteComplete = true;
+            }
+        }
+
+        Point2D posCentreeL = physiqueL.centrer(positionL);
+        if (posCentreeL.getX() > 10 && posCentreeL.getY() > 10) { // Seuil arbitraire
+            traceL.add(posCentreeL);
+        }
 
         accelerationTemps = sliderTemps.getValue() * 2000000;
 
-
-        /*
-        // test ellipse simple (temporaire)
-        double a = 200; // demi grand axe
-        double b = 180; // demi petit axe
-
-        double x = centreX + a * Math.cos(tempsSimulation);
-        double y = centreY + b * Math.sin(tempsSimulation);*/
+        if(traceL.size() > 5000){
+            traceT.remove(0);
+            traceL.remove(0);
+        }
 
     }
+
 
     private void draw(GraphicsContext gc) {
 
+
         gc.clearRect(0, 0, WIDTH, HEIGHT);
 
-        gc.setStroke(Color.WHITE);
         gc.setLineWidth(1);
 
-        double a = physique.DGA / Constantes.ECHELLE;
-        double b = physique.DPA / Constantes.ECHELLE;
+        gc.setStroke(Color.WHITE);
+        dessinerTrace(traceT, gc);
 
-        gc.strokeOval(
-                centreX - a, // décalage horizontal pour placer le foyer au Soleil
-                centreY - b,     // verticale centrée
-                a * 2,
-                b * 2
-        );
+        gc.setStroke(Color.RED);
+            dessinerTrace(traceL, gc);
 
 
-        gc.setFill(YELLOW);
+        // Soleil
+        gc.setFill(Color.YELLOW);
         soleil.draw(gc);
 
+
+        // Terre
         gc.setFill(Color.BLUE);
         terre.draw(gc);
 
+        // Lune
         gc.setFill(GRAY);
         lune.draw(gc);
 
+
     }
+
 
     public static double getTempsSimulation(){
         return tempsSimulation;
@@ -186,7 +234,20 @@ public class JavaFX extends Application {
         return WIDTH - WIDTH/3;
     }
 
+    public static void dessinerTrace(ArrayList<Point2D> trace, GraphicsContext gc){
+        for (int i = 1; i < trace.size(); i++) {
 
+            Point2D p1 = trace.get(i - 1);
+            Point2D p2 = trace.get(i);
+
+            if (p1.getX() == 0 && p1.getY() == 0) continue;
+
+            gc.strokeLine(
+                    p1.getX(), p1.getY(),
+                    p2.getX(), p2.getY()
+            );
+        }
+    }
 
 
     public static void main(String[] args) {

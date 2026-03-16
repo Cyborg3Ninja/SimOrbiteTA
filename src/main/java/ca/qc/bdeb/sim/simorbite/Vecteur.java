@@ -27,7 +27,7 @@ public class Vecteur {
         }
 
 
-        /** Mise à jour de la physique selon le temps. */
+        /** Mise à jour de la physiqueT selon le temps. */
         protected void updatePhysique(double dt) {
             // v = v + a·dt
             velocite = velocite.add(acceleration.multiply(dt));

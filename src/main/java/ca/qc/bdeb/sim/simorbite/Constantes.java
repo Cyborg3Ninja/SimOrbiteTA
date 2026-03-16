@@ -5,4 +5,5 @@ public class Constantes {
     public static final double HAUTEUR_FENETRE = 800;
 
     public static final double ECHELLE = 1000000; //1 000 000km = 1 pixel conversion
+    public static final double DISTANCEEXTRA = 500000;
 }
