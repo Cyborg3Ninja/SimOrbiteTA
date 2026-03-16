@@ -12,6 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class JavaFX extends Application {
 
@@ -20,6 +21,7 @@ public class JavaFX extends Application {
 
     private Etoile soleil;
     private Planete terre;
+    private ArrayList<Point2D> trace = new ArrayList<>();
 
     private Physique physique;
 
@@ -93,6 +95,11 @@ public class JavaFX extends Application {
         terre.setX(position.getX());
         terre.setY(position.getY());
 
+        trace.add(position);
+
+        terre.setX(position.getX());
+        terre.setY(position.getY());
+
         /*double centreX = WIDTH / 2.0;
         double centreY = HEIGHT / 2.0;
 
@@ -111,6 +118,20 @@ public class JavaFX extends Application {
 
         gc.setFill(Color.YELLOW);
         soleil.draw(gc);
+
+        gc.setStroke(Color.GRAY);
+        gc.setLineWidth(1);
+
+        for (int i = 1; i < trace.size(); i++) {
+
+            Point2D p1 = trace.get(i - 1);
+            Point2D p2 = trace.get(i);
+
+            gc.strokeLine(
+                    p1.getX(), p1.getY(),
+                    p2.getX(), p2.getY()
+            );
+        }
 
         gc.setFill(Color.BLUE);
         terre.draw(gc);

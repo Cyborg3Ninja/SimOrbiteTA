@@ -1,6 +1,8 @@
 package ca.qc.bdeb.sim.simorbite;
 
 import javafx.geometry.Point2D;
+import java.util.ArrayList;
+
 
 import static java.lang.Math.*;
 
@@ -9,6 +11,8 @@ public class Physique {
     Point2D ancre = Point2D.ZERO;
     double temps;
     double tempsP; //temps au passage du periastre
+
+
     Physique(Point2D ancre, double temps, double tempsP) {
         this.ancre = ancre;
         this.temps = temps;
@@ -65,17 +69,18 @@ public class Physique {
 
         double deltaT = tempsActuel - tempsP;
 
-        double anomalieMoyenne = moyenneMouvement * deltaT;
+        double M = moyenneMouvement * deltaT;
 
-        double E = calculApproximationAnomalieExcentrique(anomalieMoyenne);
+        double E = calculApproximationAnomalieExcentrique(M);
 
         double x = DGA * (Math.cos(E) - e);
-        double y = -DGA * (Math.sqrt(1 - e * e) * Math.sin(E));
+        double y = - DGA * Math.sqrt(1 - e * e) * Math.sin(E);
 
         Point2D vecteurRayon = new Point2D(x, y);
 
-        return ancre.add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE)); //appliqué l'échelle avant d'add l'ancre
+        return ancre.add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE));
     }
+
 
     public static double norme(Point2D p){
     return Math.sqrt(p.getX() * p.getX() + p.getY()*p.getY());
@@ -104,6 +109,15 @@ public class Physique {
     public double normeRayon(){
         return Math.sqrt(vecteurRayon.getX()*vecteurRayon.getX() + vecteurRayon.getY()*vecteurRayon.getX());
     }
+
+    public double getDGA() {
+        return DGA;
+    }
+
+    public double getDPA() {
+        return DPA;
+    }
+
 
 
 
