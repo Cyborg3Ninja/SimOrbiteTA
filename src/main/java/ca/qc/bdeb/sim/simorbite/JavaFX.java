@@ -20,8 +20,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-import static javafx.scene.paint.Color.WHITE;
-import static javafx.scene.paint.Color.YELLOW;
+import static javafx.scene.paint.Color.*;
 
 public class JavaFX extends Application {
 
@@ -39,6 +38,7 @@ public class JavaFX extends Application {
     double c = physique.DGA / Constantes.ECHELLE * physique.e;
     private Etoile soleil = new Etoile(centreX - c - 10, centreY - 10, 20);
     private Planete terre = new Planete(0, 0, 10);
+    private Satellite lune = new Satellite(0,0,5);
 
 
     private static double tempsSimulation = 0;
@@ -125,12 +125,20 @@ public class JavaFX extends Application {
 
     private void update() {
 
-        Point2D position = physique.position(tempsSimulation);
+        Point2D positionT = physique.position(tempsSimulation);
 
-        terre.setX(position.getX() - terre.getTaille().getX()/2 + c);
-        terre.setY(position.getY() - terre.getTaille().getY()/2);
+        terre.setX(positionT.getX() - terre.getTaille().getX()/2 + c);
+        terre.setY(positionT.getY() - terre.getTaille().getY()/2);
+
+        Point2D positionL = physique.position(tempsSimulation);
+
+        lune.setX(positionL.getX() - lune.getTaille().getX()/2); //+ foyer
+        lune.setY(positionT.getY() - lune.getTaille().getY()/2);
+
+
 
         accelerationTemps = sliderTemps.getValue() * 2000000;
+
 
         /*
         // test ellipse simple (temporaire)
@@ -165,6 +173,9 @@ public class JavaFX extends Application {
 
         gc.setFill(Color.BLUE);
         terre.draw(gc);
+
+        gc.setFill(GRAY);
+        lune.draw(gc);
 
     }
 

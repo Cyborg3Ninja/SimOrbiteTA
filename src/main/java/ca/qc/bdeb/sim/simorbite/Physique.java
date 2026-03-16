@@ -17,8 +17,8 @@ public class Physique {
 
     //CONSTANTES
     final double DEGREEPRECISION = 0.005;
-    final double GM = 398600.4418; //Parametre gravitionnelle standard
-    final double PERIODETHEORIQUE = 31558145;
+
+
 
     //Demie grand axe de la terre autour du soleil
     final double RAYONPERIASTRE = 147099894;
@@ -26,6 +26,8 @@ public class Physique {
     final double MTERRE = 5.972 * Math.pow(10, 24);
     final double MSOLEIL = 1.989 * Math.pow(10, 30);
     final double GTERRESOLEIL = 3.6 * Math.pow(10, 22);
+    final double GM = 398600.4418; //Parametre gravitionnelle standard Terre
+    final double PERIODETHEORIQUETERRE = 31558145;
 
 
     double e = (RAYONAPOASTRE - RAYONPERIASTRE) / (RAYONAPOASTRE + RAYONPERIASTRE); //Excentricite
@@ -37,7 +39,7 @@ public class Physique {
     //double distance = calculDistance();
     //double force = forceTerreSoleil(distance);
 
-    double moyenneMouvement = 2 * PI / PERIODETHEORIQUE;
+    double moyenneMouvement = 2 * PI / PERIODETHEORIQUETERRE;
     double deltaT = temps - tempsP; //a revoir
     double anomalieMoyenne = moyenneMouvement * (deltaT);
     double anomalieExcentrique = calculApproximationAnomalieExcentrique(anomalieMoyenne /(1-e));
