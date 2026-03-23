@@ -188,7 +188,7 @@ public class JavaFX extends Application {
 
         accelerationTemps = sliderTemps.getValue() * 2000000;
 
-        if(traceL.size() > 5000){
+        if(traceT.size() > 5000){
             traceT.remove(0);
             traceL.remove(0);
         }
@@ -201,13 +201,15 @@ public class JavaFX extends Application {
 
         gc.clearRect(0, 0, WIDTH, HEIGHT);
 
-        gc.setLineWidth(1);
+        gc.setLineWidth(2);
 
-        gc.setStroke(Color.WHITE);
+        gc.setStroke(Color.rgb(255, 255, 255, 0.35));
         dessinerTrace(traceT, gc);
 
-        gc.setStroke(Color.RED);
-            dessinerTrace(traceL, gc);
+        gc.setLineWidth(1);
+
+        gc.setStroke(Color.rgb(167, 0, 255, 0.5));
+        dessinerTrace(traceL, gc);
 
 
         // Soleil
