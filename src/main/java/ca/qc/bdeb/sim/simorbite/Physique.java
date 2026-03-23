@@ -1,3 +1,4 @@
+/*
 package ca.qc.bdeb.sim.simorbite;
 
 import javafx.geometry.Point2D;
@@ -25,13 +26,15 @@ public class Physique {
 
 
     //Demie grand axe de la terre autour du soleil
-    /*final double RAYONPERIASTRE = 147099894;
+    */
+/*final double RAYONPERIASTRE = 147099894;
     final double RAYONAPOASTRE = 149598023;
     final double MTERRE = 5.972 * Math.pow(10, 24);
     final double MSOLEIL = 1.989 * Math.pow(10, 30);
     final double FGTERRESOLEIL = 3.6 * Math.pow(10, 22);
     final double GM = 398600.4418; //Parametre gravitionnelle standard Terre
-    final double PERIODETHEORIQUETERRE = 31558145;*/
+    final double PERIODETHEORIQUETERRE = 31558145;*//*
+
 
     //Excentricite
     public double getE(){
@@ -80,11 +83,13 @@ public class Physique {
 
 
 
-    /*double anomalieMoyenne = moyenneMouvement * (deltaT);
+    */
+/*double anomalieMoyenne = moyenneMouvement * (deltaT);
     double anomalieExcentrique = calculApproximationAnomalieExcentrique(anomalieMoyenne /(1-e));
     double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
     Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
-    */
+    *//*
+
 
 
     //double distance = calculDistance();
@@ -162,3 +167,4 @@ public class Physique {
 
 }
 
+*/

@@ -17,7 +17,7 @@ public class Satellite extends Astre {
     double masseCorpsCentral;
     double Gm;
     double periodeTheorique;
-    Astre corpsCentrale;
+    Point2D positionCorpsCentrale;
     double temps;
     double tempsP; //temps au passage du periastre
     Color couleur;
@@ -30,7 +30,7 @@ public class Satellite extends Astre {
 
     public Satellite(double x, double y, double rayon, double rayonPeriastre,
                      double rayonApoastre, double masseSatellite, double masseCorpsCentral,
-                     double Gm, double periodeTheorique, Astre corpsCentrale, double temps, double tempsP, Color couleur) {
+                     double Gm, double periodeTheorique, Point2D positionCorpsCentrale, double temps, double tempsP, Color couleur) {
         super(x, y, 0, rayon);
         this.rayonPeriastre = rayonPeriastre;
         this.rayonApoastre = rayonApoastre;
@@ -38,7 +38,7 @@ public class Satellite extends Astre {
         this.masseCorpsCentral = masseCorpsCentral;
         this.Gm = Gm;
         this.periodeTheorique = periodeTheorique;
-        this.corpsCentrale = corpsCentrale;
+        this.positionCorpsCentrale = positionCorpsCentrale;
         this.temps = temps;
         this.tempsP = tempsP;
         this.couleur = couleur;
@@ -52,13 +52,9 @@ public class Satellite extends Astre {
     public void setTemps(double temps){
         this.temps = temps;
     }
+
     public Point2D getAncre() {
-        return corpsCentrale.getPosition();
-    }
-
-
-    public Astre getCorpsCentrale(){
-        return corpsCentrale;
+        return positionCorpsCentrale;
     }
 
 
@@ -173,11 +169,12 @@ public class Satellite extends Astre {
     }
 
 
-    public Point2D position() {
+    public Point2D position(double c) {
 
         double deltaT = temps - tempsP;
 
-        double anomalieMoyenne = getMoyenneMouvement() * deltaT;
+        double anomalieMoyenne = (getMoyenneMouvement() * deltaT) % (2*Math.PI);
+        if (anomalieMoyenne < 0) anomalieMoyenne += 2 * Math.PI;
 
         double E = calculApproximationAnomalieExcentrique(anomalieMoyenne);
 
@@ -185,8 +182,12 @@ public class Satellite extends Astre {
         double y = -getDGA() * (Math.sqrt(1 - getE() * getE()) * Math.sin(E));
 
         Point2D vecteurRayon = new Point2D(x, y);
+        Point2D pointEspace = getAncre().add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE));
 
-        return getAncre().add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE)); //appliqué l'échelle avant d'add getAncre()
+        setX(pointEspace.getX() - taille.getX()/2 + c);
+        setY(pointEspace.getY() - taille.getY()/2);
+
+        return pointEspace; //appliqué l'échelle avant d'add getAncre()
     }
 
     public double calculForceGravitionnelle(){
@@ -225,9 +226,6 @@ public class Satellite extends Astre {
         return Math.sqrt(getVecteurRayon().getX()*getVecteurRayon().getX() + getVecteurRayon().getY()*getVecteurRayon().getX());
     }
 
-    public void setAncre(Point2D point2D){
-        corpsCentrale.position = point2D;
-    }
 
 
 }

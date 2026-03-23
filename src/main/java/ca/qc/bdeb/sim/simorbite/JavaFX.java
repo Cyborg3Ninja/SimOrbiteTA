@@ -44,10 +44,10 @@ public class JavaFX extends Application {
 
     private Satellite terre = new Satellite(0, 0, 10, 147099894, 149598023,
             5.972 * Math.pow(10, 24), 1.989 * Math.pow(10, 30),
-            398600.4418, 31558145, soleil, 0, 0, BLUE);
+            398600.4418, 31558145, soleil.getPosition(), 0, 0, BLUE);
 
-    private Satellite lune = new Satellite(terre.getPosition().getX() / Constantes.ECHELLE, terre.getPosition().getY() / Constantes.ECHELLE, 5, 356400, 406700,
-            7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800, terre, 0, 0, GRAY);
+    private Satellite lune = new Satellite(terre.getX(), terre.getY(), 5, 356400 , 406700,
+            7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800, terre.getPosition(), 0, 0, GRAY);
 
 
     //physiqueT.getC() = getDGA() / Constantes.ECHELLE * getE()
@@ -60,7 +60,6 @@ public class JavaFX extends Application {
 
     private static double tempsSimulation = 0;
     private static double accelerationTemps = 2000000;
-    private static double tailleTrace = 50;
 
     VBox menu;
     Slider sliderTemps;
@@ -179,38 +178,44 @@ public class JavaFX extends Application {
         terre.setY(positionT.getY() - terre.getTaille().getY() / 2);*/
 
         for (Satellite s : satellitesList) {
-            Point2D position = s.position();
-            if (position.getX() > getWidthSimulation()) {
+
+           // Point2D position = s.position();
+            if (s == terre) {
+                s.setPosition(s.position(s.getC()));
+            } else {
+                s.position(0);
+                System.out.println(s.position);
+                System.out.println(s.positionCorpsCentrale);
+            }
+
+                System.out.println(s.position);
+
+            /*if (position.getX() > getWidthSimulation()) {
                 position = new Point2D(getWidthSimulation() , position.getY());
             }
             if (position.getY() > HEIGHT) {
                 position = new Point2D(position.getX(), HEIGHT);
-            }
-
-            if(s.getCorpsCentrale() == soleil) {
+            }*/
+           /* if(s.getCorpsCentrale() == soleil) {
                 s.setAncre(s.getCorpsCentrale().getPosition());
                 s.setX(position.getX() - s.getTaille().getX() / 2+ s.getC());
                 s.setY(position.getY() - s.getTaille().getY() / 2);
 
-            } else if (s.getCorpsCentrale() == terre){
+            } *//*else if (s.getCorpsCentrale() == terre){
+                s.setAncre(s.getCorpsCentrale().getPosition().multiply(1.0/Constantes.ECHELLE));
                 s.setX(position.getX() + s.getCorpsCentrale().getTaille().getX() /2- s.getTaille().getX() / 2);
-                s.setY(position.getY() + s.getCorpsCentrale().getTaille().getX() /2 - s.getTaille().getY() / 2);
+                s.setY(position.getY() + s.getCorpsCentrale().getTaille().getY() /2 - s.getTaille().getY() / 2);
+                s.setAncre(s.corpsCentrale.getPosition());
             //pas de c car pas visible
-            }
+            }*/
 
             Point2D pointTrace = new Point2D(s.getX() + s.getTaille().getX() / 2, s.getY() + s.getTaille().getY() / 2);
             s.getTrace().add(pointTrace);
-
-            /*if (positionInitiale == null) {
-                positionInitiale = position;
-            }*/
 
             while (s.getTrace().size() > sliderTrace.getValue()) {
                 s.getTrace().removeFirst();
             }
         }
-
-
         /*Point2D positionL = lune.position(tempsSimulation);
         lune.setAncre(terre.getPosition());*/
 
