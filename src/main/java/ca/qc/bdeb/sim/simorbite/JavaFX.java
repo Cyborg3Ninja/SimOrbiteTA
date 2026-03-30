@@ -44,6 +44,20 @@ public class JavaFX extends Application {
     private Satellite lune = new Satellite(terre.getPosition().getX(),terre.getPosition().getY(),5, 356400 * 50 , 406700 * 50,
             7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800);
 
+
+    // Deuxième système planète (toggle)
+    private boolean deuxiemeSystemeActif = false;
+
+    private Satellite terre2;
+    private Satellite lune2;
+
+    private Physique physiqueT2;
+    private Physique physiqueL2;
+
+    private ArrayList<Point2D> traceT2 = new ArrayList<>();
+    private ArrayList<Point2D> traceL2 = new ArrayList<>();
+
+
     Point2D ancre = new Point2D(centreX , centreY);
     Physique physiqueT = new Physique(terre, ancre, 0, 0);
     Physique physiqueL = new Physique(lune, terre.getPosition(), 0,0);
@@ -91,8 +105,24 @@ public class JavaFX extends Application {
 
         });
 
+        Button boutonDeuxieme = new Button("Ajouter planète");
+        boutonDeuxieme.setStyle("-fx-font-size: 14px; -fx-background-color: #3498db; -fx-text-fill: white;");
 
-        menu.getChildren().addAll(aTemps, boutonEffacer);
+        boutonDeuxieme.setOnAction(e -> {
+
+            deuxiemeSystemeActif = !deuxiemeSystemeActif;
+
+            if (deuxiemeSystemeActif) {
+                creerDeuxiemeSysteme();
+                boutonDeuxieme.setText("Supprimer planète");
+            } else {
+                supprimerDeuxiemeSysteme();
+                boutonDeuxieme.setText("Ajouter planète");
+            }
+
+        });
+
+        menu.getChildren().addAll(aTemps, boutonEffacer, boutonDeuxieme);
 
 
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
@@ -193,6 +223,24 @@ public class JavaFX extends Application {
             traceL.remove(0);
         }
 
+        if (deuxiemeSystemeActif) {
+
+            Point2D posT2 = physiqueT2.position(tempsSimulation);
+
+            terre2.setX(posT2.getX() - terre2.getTaille().getX()/2 + physiqueT2.getC());
+            terre2.setY(posT2.getY() - terre2.getTaille().getY()/2);
+
+            physiqueL2.setAncre(terre2.getPosition());
+            Point2D posL2 = physiqueL2.position(tempsSimulation);
+
+            lune2.setX(posL2.getX() + terre2.getTaille().getX()/2 - lune2.getTaille().getX()/2);
+            lune2.setY(posL2.getY() + terre2.getTaille().getY()/2 - lune2.getTaille().getY()/2);
+
+            traceT2.add(posT2);
+            traceL2.add(physiqueL2.centrer(posL2));
+        }
+
+
     }
 
 
@@ -225,6 +273,23 @@ public class JavaFX extends Application {
         gc.setFill(GRAY);
         lune.draw(gc);
 
+        if (deuxiemeSystemeActif) {
+
+            gc.setLineWidth(2);
+            gc.setStroke(Color.rgb(0, 255, 150, 0.35));
+            dessinerTrace(traceT2, gc);
+
+            gc.setLineWidth(1);
+            gc.setStroke(Color.rgb(255, 100, 255, 0.5));
+            dessinerTrace(traceL2, gc);
+
+            gc.setFill(Color.GREEN);
+            terre2.draw(gc);
+
+            gc.setFill(Color.LIGHTGRAY);
+            lune2.draw(gc);
+        }
+
 
     }
 
@@ -250,6 +315,39 @@ public class JavaFX extends Application {
             );
         }
     }
+
+    private void creerDeuxiemeSysteme() {
+
+        terre2 = new Satellite(
+                0, 0, 10,
+                200000000, 230000000, // orbite plus grande
+                5.972 * Math.pow(10, 24),
+                1.989 * Math.pow(10, 30),
+                398600.4418,
+                40000000 // période plus grande
+        );
+
+        lune2 = new Satellite(
+                0, 0, 5,
+                400000 * 50, 500000 * 50,
+                7.35 * Math.pow(10, 22),
+                5.972 * Math.pow(10, 24),
+                2360448,
+                3000000
+        );
+
+        physiqueT2 = new Physique(terre2, ancre, tempsSimulation, 0);
+        physiqueL2 = new Physique(lune2, terre2.getPosition(), tempsSimulation, 0);
+
+        traceT2.clear();
+        traceL2.clear();
+    }
+
+    private void supprimerDeuxiemeSysteme() {
+        traceT2.clear();
+        traceL2.clear();
+    }
+
 
 
     public static void main(String[] args) {
