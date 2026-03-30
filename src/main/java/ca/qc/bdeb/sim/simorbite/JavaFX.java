@@ -40,14 +40,14 @@ public class JavaFX extends Application {
 
     ArrayList<Satellite> satellitesList = new ArrayList<>();
     private CorpsCentral soleil = new CorpsCentral(centreX - Constantes.DISTANCEFOYERSOLEIL - 10, centreY - 10, 20);
-    ;
 
     private Satellite terre = new Satellite(0, 0, 10, 147099894, 149598023,
             5.972 * Math.pow(10, 24), 1.989 * Math.pow(10, 30),
             398600.4418, 31558145, soleil.getPosition(), 0, 0, BLUE);
 
     private Satellite lune = new Satellite(terre.getX(), terre.getY(), 5, 356400 , 406700,
-            7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800, terre.getPosition(), 0, 0, GRAY);
+            7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800,
+            terre.getPosition().multiply(1.00/ Constantes.ECHELLE), 0, 0, GRAY);
 
 
     //physiqueT.getC() = getDGA() / Constantes.ECHELLE * getE()
@@ -183,12 +183,11 @@ public class JavaFX extends Application {
             if (s == terre) {
                 s.setPosition(s.position(s.getC()));
             } else {
-                s.position(0);
+                s.setPosition(s.position(0));
                 System.out.println(s.position);
                 System.out.println(s.positionCorpsCentrale);
             }
 
-                System.out.println(s.position);
 
             /*if (position.getX() > getWidthSimulation()) {
                 position = new Point2D(getWidthSimulation() , position.getY());
