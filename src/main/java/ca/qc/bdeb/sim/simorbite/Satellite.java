@@ -29,14 +29,12 @@ public class Satellite extends Astre {
     double angleP = 0; //angle du periastre
 
 
-    public Satellite(double x, double y, double rayon, double rayonPeriastre,
-                     double rayonApoastre, double masseSatellite, double masseCorpsCentral,
+    public Satellite(double x, double y, double rayon, String nom, double rayonPeriastre,
+                     double rayonApoastre, double masse,
                      double Gm, double periodeTheorique, Astre corpsCentrale, double temps, double tempsP, Color couleur) {
-        super(x, y, 0, rayon);
+        super(x, y, masse, rayon, nom);
         this.rayonPeriastre = rayonPeriastre;
         this.rayonApoastre = rayonApoastre;
-        this.masseSatellite = masseSatellite;
-        this.masseCorpsCentral = masseCorpsCentral;
         this.Gm = Gm;
         this.periodeTheorique = periodeTheorique;
         this.corpsCentrale = corpsCentrale;
@@ -143,7 +141,7 @@ public class Satellite extends Astre {
         ancre = corpsCentrale.getPosition();
     }
 
-    public Point2D position(double c) {
+    /*public Point2D position(double c) {
 
         double deltaT = temps - tempsP;
 
@@ -162,6 +160,30 @@ public class Satellite extends Astre {
         setY(pointEspace.getY() - taille.getY()/2 + corpsCentrale.getLargeur()/2);
 
         return pointEspace; //appliqué l'échelle avant d'add getAncre()
+    }*/
+
+    public Point2D position(double c) {
+        double deltaT = temps - tempsP;
+
+        double anomalieMoyenne = (getMoyenneMouvement() * deltaT) % (2 * Math.PI);
+        if (anomalieMoyenne < 0) anomalieMoyenne += 2 * Math.PI;
+
+        double E = calculApproximationAnomalieExcentrique(anomalieMoyenne);
+
+        // Calcul de la position relative au foyer (le corps central)
+        // On multiplie par 1/ECHELLE pour passer des mètres aux pixels
+        double xRelatif = (getDGA() * (Math.cos(E) - getE())) / Constantes.ECHELLE;
+        double yRelatif = (-getDGA() * (Math.sqrt(1 - getE() * getE()) * Math.sin(E))) / Constantes.ECHELLE;
+
+        // Le centre du corps autour duquel on tourne
+        double centreAncreX = ancre.getX() + corpsCentrale.getLargeur() / 2;
+        double centreAncreY = ancre.getY() + corpsCentrale.getLargeur() / 2;
+
+        // Position finale : Centre de l'ancre + position relative - moitié de la taille du satellite pour le centrer
+        setX(centreAncreX + xRelatif - taille.getX() / 2);
+        setY(centreAncreY + yRelatif - taille.getY() / 2);
+
+        return new Point2D(getX(), getY());
     }
 
     public double calculForceGravitionnelle(){

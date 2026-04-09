@@ -7,10 +7,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import java.util.Random;
 import javafx.scene.paint.Color;
@@ -43,13 +40,14 @@ public class JavaFX extends Application {
     ArrayList<Slider> inputsList = new ArrayList<>();
 
     private final LinkedHashMap<String, String> PARAM = new LinkedHashMap<>() {{
-        put("Rayon", "1;10");
+        put("Rayon", "3;10");
         put("Periastre", "11000000;200000000");
         put("Apoastre", "11000000;200000000");
+        put("Periode theorique","864000;6.312e9"); //min = 10 jours, max = 200 ans
         /*"Masse du Satellite","1;1",
             "Masse du Corps Centrale","1;1",
             "GM","1;1",
-            "Periode theorique","1;1",
+            ,
             "Corps Centrale","1;1"*/
     }};
 
@@ -57,14 +55,14 @@ public class JavaFX extends Application {
 
 
     ArrayList<Satellite> satellitesList = new ArrayList<>();
-    private CorpsCentral soleil = new CorpsCentral(centreX - Constantes.DISTANCEFOYERSOLEIL - 10, centreY - 10, 20);
+    private CorpsCentral soleil = new CorpsCentral(centreX - Constantes.DISTANCEFOYERSOLEIL - 10, centreY - 10, 20, 1.989 * Math.pow(10, 30), "Soleil");
 
-    private Satellite terre = new Satellite(0, 0, 10, 147099894, 149598023,
-            5.972 * Math.pow(10, 24), 1.989 * Math.pow(10, 30),
+    private Satellite terre = new Satellite(0, 0, 10, "Terre" , 147099894, 149598023,
+            5.972 * Math.pow(10, 24),
             398600.4418, 31558145, soleil, 0, 0, BLUE);
 
-    private Satellite lune = new Satellite(terre.getX(), terre.getY(), 5, 356400 *50 , 406700 *50,
-            7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800,
+    private Satellite lune = new Satellite(terre.getX(), terre.getY(), 5, "Lune", 356400 *50 , 406700 *50,
+            7.35 * Math.pow(10, 22), 2360448, 2548800,
             terre, 0, 0, GRAY);
 
 
@@ -133,12 +131,17 @@ public class JavaFX extends Application {
             mainLayout.setAlignment(javafx.geometry.Pos.CENTER);
             mainLayout.setStyle("-Inner-background-color: #2c3e50; -fx-background-color: #f4f4f4;");
 
-
-
             Text title = new Text("Configuration");
             title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #34495e;");
             mainLayout.getChildren().add(title);
 
+            HBox nomRange = new HBox(10);
+            Text nom = new Text("Nom ");
+            nom.setWrappingWidth(100);
+            TextField tfNom = new TextField();
+
+            nomRange.getChildren().addAll(nom, tfNom);
+            mainLayout.getChildren().add(nomRange);
             for (String p : PARAM.keySet()) {
                 HBox row = new HBox(10);
                 row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -152,6 +155,11 @@ public class JavaFX extends Application {
 
                 // Slider : on lui donne la priorité pour prendre l'espace
                 Slider slider = new Slider(inf, sup, inf);
+                // On calcule une unité de graduation raisonnable (environ 10 marques max)
+                double range = sup - inf;
+                slider.setMajorTickUnit(range);
+                slider.setMinorTickCount(0); // On enlève les petites barres inutiles
+                slider.setShowTickMarks(true);
                 slider.setShowTickLabels(true);
                 HBox.setHgrow(slider, Priority.ALWAYS);
                 inputsList.add(slider);
@@ -168,6 +176,26 @@ public class JavaFX extends Application {
                 mainLayout.getChildren().add(row);
             }
 
+            // 1. Créer le ComboBox
+            ComboBox<Astre> comboCorps = new ComboBox<>();
+
+            // 2. Ajouter le Soleil et tous les satellites existants
+            comboCorps.getItems().add(soleil);
+            comboCorps.getItems().addAll(satellitesList);
+
+            // 3. Sélectionner le soleil par défaut et styliser
+            comboCorps.getSelectionModel().selectFirst();
+            comboCorps.setPrefWidth(200);
+
+            // 4. Ajouter au layout avec un label
+            HBox rowCorps = new HBox(10);
+            rowCorps.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            Text labelCorps = new Text("Orbiter autour de :");
+            labelCorps.setWrappingWidth(120);
+            rowCorps.getChildren().addAll(labelCorps, comboCorps);
+
+            mainLayout.getChildren().add(rowCorps); // Ajoute-le avant ou après tes sliders
+
             Stage newWindow = new Stage();
 
             // Bouton de validation
@@ -176,38 +204,43 @@ public class JavaFX extends Application {
             fini.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
 
             fini.setOnAction(event -> {
-                try {
-                    ArrayList<Double> donneesPhysiques = new ArrayList<>();
-                    for(Slider s : inputsList) {
-                        // Remplacer les virgules par des points pour éviter les erreurs Java
-                        donneesPhysiques.add(s.getValue());
-                    }
-                    // Teinte : 0-360 (toutes les couleurs)
-                    // Saturation : 0.8 (très coloré, pas de gris)
-                    // Luminosité : 0.9 (très brillant, pas de sombre)
-                    Color couleurClaire = Color.hsb(Math.random() * 360, 0.8, 0.9);
-                    Satellite nouveau = new Satellite(
-                            0, 0,           // x, y initiaux (seront écrasés par position())
-                            donneesPhysiques.get(0),       // rayon du cercle à l'écran
-                            donneesPhysiques.get(1),       // rayonPeriastre
-                            donneesPhysiques.get(2),       // rayonApoastre
-                            5.972e24, 1.989e30, 398600.44, 31558145,
+                if (!tfNom.getText().isEmpty()) {
+                    try {
+                        ArrayList<Double> donneesPhysiques = new ArrayList<>();
+                        for (Slider s : inputsList) {
+                            // Remplacer les virgules par des points pour éviter les erreurs Java
+                            donneesPhysiques.add(s.getValue());
+                        }
+                        // Teinte : 0-360 (toutes les couleurs)
+                        // Saturation : 0.8 (très coloré, pas de gris)
+                        // Luminosité : 0.9 (très brillant, pas de sombre)
+                        Color couleurClaire = Color.hsb(Math.random() * 360, 0.8, 0.9);
+                        Astre cible = comboCorps.getValue();
+                        Satellite nouveau = new Satellite(
+                                0, 0,           // x, y initiaux (seront écrasés par position())
+                                donneesPhysiques.get(0),       // rayon du cercle à l'écran
+                                tfNom.getText(), //nom
+                                donneesPhysiques.get(1),       // rayonPeriastre
+                                donneesPhysiques.get(2),       // rayonApoastre
+                                0, 398600.44, donneesPhysiques.get(3),
                             /*donneesPhysiques.get(3),       // masseSatellite
                             donneesPhysiques.get(4),       // masseCorpsCentral
                             donneesPhysiques.get(5),       // Gm
                             donneesPhysiques.get(6).longValue(), // periodeTheorique (converti en long si nécessaire)*/
-                            soleil,         // corpsCentral (par défaut le soleil ici) AJOUTER SELECTOR
-                            0, 0,           // temps, tempsP
-                            couleurClaire      // couleur random
-                    );
-                    satellitesList.add(nouveau);
-                    newWindow.close();
+                                cible,         // corpsCentral (par défaut le soleil ici) AJOUTER SELECTOR
+                                0, 0,           // temps, tempsP
+                                couleurClaire      // couleur random
+                        );
+                        satellitesList.add(nouveau);
+                        newWindow.close();
 
 
-                } catch (Exception err) {
-                System.out.println("Erreur");
+                    } catch (Exception err) {
+                        System.out.println("Erreur");
+                    }
                 }
             });
+
 
             // Effet hover simple
             fini.setOnMouseEntered(event -> fini.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;"));
@@ -282,7 +315,7 @@ public class JavaFX extends Application {
 
         for (Satellite s : satellitesList) {
             s.updateAncre();
-            s.position(s.getC());
+            s.position(01);
 
 
 
