@@ -15,6 +15,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.converter.NumberStringConverter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,19 +37,23 @@ public class JavaFX extends Application {
     private Point2D positionInitiale = null;
     private boolean orbiteComplete = false;
 
-    //
+
     Map<String, String> map = Map.of(
             "Rayon", "1;10",
-            "Periastre", "value2",
-            "Apoastre", "value3",
-            "Masse du Satellite","1;1",
+            "Periastre", "10000000;200000000",
+            "Apoastre", "10000000;200000000"
+            /*"Masse du Satellite","1;1",
             "Masse du Corps Centrale","1;1",
             "GM","1;1",
             "Periode theorique","1;1",
-            "Corps Centrale","1;1"
+            "Corps Centrale","1;1"*/
     );
 
+    ArrayList<TextField> textFields = new ArrayList<>();
+    ArrayList<Slider> inputsList = new ArrayList<>();
+
     private final HashMap<String, String> PARAM = new HashMap<>(map);
+
 
 
 
@@ -121,13 +126,15 @@ public class JavaFX extends Application {
 
 
         boutonAjouter.setOnAction(e -> {
+            inputsList.clear();  // Vide les anciennes références
+            textFields.clear();
             // Fenêtre principale (VBox)
             VBox mainLayout = new VBox(20); // Spacing de 20px entre les lignes
             mainLayout.setPadding(new javafx.geometry.Insets(25)); // Marges intérieures
             mainLayout.setAlignment(javafx.geometry.Pos.CENTER);
             mainLayout.setStyle("-Inner-background-color: #2c3e50; -fx-background-color: #f4f4f4;");
 
-            ArrayList<Slider> inputsList = new ArrayList<>();
+
 
             Text title = new Text("Configuration");
             title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #34495e;");
@@ -135,15 +142,30 @@ public class JavaFX extends Application {
 
             for (String p : PARAM.keySet()) {
                 HBox row = new HBox(10);
+                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
                 Text label = new Text(p);
-                label.setWrappingWidth(120);
+                label.setWrappingWidth(100); // Largeur fixe pour aligner les colonnes
 
-                Slider slider = new Slider(1,1,1);
+                String[] tab = PARAM.get(p).split(";", 2);
+                double inf = Double.parseDouble(tab[0]);
+                double sup = Double.parseDouble(tab[1]);
 
-                // On garde la référence du TextField
+                // Slider : on lui donne la priorité pour prendre l'espace
+                Slider slider = new Slider(inf, sup, inf);
+                slider.setShowTickLabels(true);
+                HBox.setHgrow(slider, Priority.ALWAYS);
                 inputsList.add(slider);
 
-                row.getChildren().addAll(label, slider);
+                // TextField : on le garde petit
+                TextField tf = new TextField();
+                tf.setPrefWidth(100);
+
+                tf.textProperty().bindBidirectional(slider.valueProperty(), new javafx.util.converter.NumberStringConverter());
+
+                textFields.add(tf);
+
+                row.getChildren().addAll(label, slider, tf);
                 mainLayout.getChildren().add(row);
             }
 
@@ -174,8 +196,8 @@ public class JavaFX extends Application {
                     );
 
 
-                } catch (NumberFormatException err) {
-                    System.out.println("Erreur : Veuillez entrer des chiffres valides !");
+                } catch (Exception err) {
+                System.out.println("Erreur");
                 }
             });
 
@@ -185,7 +207,7 @@ public class JavaFX extends Application {
 
             mainLayout.getChildren().addAll(fini);
 
-            Scene secondScene = new Scene(mainLayout, 350, 450); // Légèrement plus large pour le confort
+            Scene secondScene = new Scene(mainLayout, 450, 450); // Légèrement plus large pour le confort
 
             Stage newWindow = new Stage();
 
@@ -275,6 +297,10 @@ public class JavaFX extends Application {
                 s.getTrace().removeFirst();
             }
         }
+
+        /*for (int i = 0; i < textFields.size(); i++) {
+            textFields.get(i).setText(String.valueOf(inputsList.get(i)));
+        }*/
 
         accelerationTemps = sliderTemps.getValue() * 2000000;
 
