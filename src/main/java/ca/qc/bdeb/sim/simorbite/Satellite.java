@@ -17,10 +17,11 @@ public class Satellite extends Astre {
     double masseCorpsCentral;
     double Gm;
     double periodeTheorique;
-    Point2D positionCorpsCentrale;
+    Astre corpsCentrale;
     double temps;
     double tempsP; //temps au passage du periastre
     Color couleur;
+    Point2D ancre;
     ArrayList<Point2D> trace = new ArrayList<>();
 
     //CONSTANTES
@@ -30,7 +31,7 @@ public class Satellite extends Astre {
 
     public Satellite(double x, double y, double rayon, double rayonPeriastre,
                      double rayonApoastre, double masseSatellite, double masseCorpsCentral,
-                     double Gm, double periodeTheorique, Point2D positionCorpsCentrale, double temps, double tempsP, Color couleur) {
+                     double Gm, double periodeTheorique, Astre corpsCentrale, double temps, double tempsP, Color couleur) {
         super(x, y, 0, rayon);
         this.rayonPeriastre = rayonPeriastre;
         this.rayonApoastre = rayonApoastre;
@@ -38,11 +39,11 @@ public class Satellite extends Astre {
         this.masseCorpsCentral = masseCorpsCentral;
         this.Gm = Gm;
         this.periodeTheorique = periodeTheorique;
-        this.positionCorpsCentrale = positionCorpsCentrale;
+        this.corpsCentrale = corpsCentrale;
         this.temps = temps;
         this.tempsP = tempsP;
         this.couleur = couleur;
-
+        this.ancre = corpsCentrale.getPosition();
     }
 
     public ArrayList<Point2D> getTrace(){
@@ -54,9 +55,8 @@ public class Satellite extends Astre {
     }
 
     public Point2D getAncre() {
-        return positionCorpsCentrale;
+        return corpsCentrale.getPosition();
     }
-
 
     public double getRayonPeriastre() {
         return rayonPeriastre;
@@ -81,23 +81,6 @@ public class Satellite extends Astre {
     public double getPeriodeTheorique() {
         return periodeTheorique;
     }
-    /*
-    final double RAYONPERIASTRE = 147099894;
-    final double RAYONAPOASTRE = 149598023;
-    final double MTERRE = 5.972 * Math.pow(10, 24);
-    final double MSOLEIL = 1.989 * Math.pow(10, 30);
-    final double FGTERRESOLEIL = 3.6 * Math.pow(10, 22);
-    final double Gm = 398600.4418; //Parametre gravitionnelle standard Terre
-    final double PERIODETHEORIQUETERRE = 31558145;*/
-
-    //Demie grand axe de la terre autour du soleil
-    /*final double RAYONPERIASTRE = 147099894;
-    final double RAYONAPOASTRE = 149598023;
-    final double MTERRE = 5.972 * Math.pow(10, 24);
-    final double MSOLEIL = 1.989 * Math.pow(10, 30);
-    final double FGTERRESOLEIL = 3.6 * Math.pow(10, 22);
-    final double GM = 398600.4418; //Parametre gravitionnelle standard Terre
-    final double PERIODETHEORIQUETERRE = 31558145;*/
 
     //Excentricite
     public double getE(){
@@ -135,22 +118,10 @@ public class Satellite extends Astre {
         return new Point2D(getDGA()*(cos(getAnomalieExcentrique() - getE())), getDGA()*(Math.sqrt(1-getE()*getE())) * sin(getAnomalieExcentrique()));
     }
 
-    public Point2D getPosition(){
-        return getAncre().add(getVecteurRayon());
-    }
-
     //Distance entre centre et le foyer
     public double getC(){
         return getDGA() / Constantes.ECHELLE * getE();
     }
-
-
-
-    /*double anomalieMoyenne = moyenneMouvement * (deltaT);
-    double anomalieExcentrique = calculApproximationAnomalieExcentrique(anomalieMoyenne /(1-e));
-    double anomalieVraie = 2*Math.atan(Math.sqrt((1+e)/(1-e)*tan(anomalieExcentrique/2)));
-    Point2D vecteurRayon = new Point2D(DGA*(cos(anomalieExcentrique - e)), DGA*(Math.sqrt(1-e*e)) * sin(anomalieExcentrique));
-    */
 
 
     //double distance = calculDistance();
@@ -168,6 +139,9 @@ public class Satellite extends Astre {
         return u;
     }
 
+    public void updateAncre(){
+        ancre = corpsCentrale.getPosition();
+    }
 
     public Point2D position(double c) {
 
@@ -182,7 +156,7 @@ public class Satellite extends Astre {
         double y = -getDGA() * (Math.sqrt(1 - getE() * getE()) * Math.sin(E));
 
         Point2D vecteurRayon = new Point2D(x, y);
-        Point2D pointEspace = getAncre().add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE));
+        Point2D pointEspace = ancre.add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE));
 
         setX(pointEspace.getX() - taille.getX()/2 + c);
         setY(pointEspace.getY() - taille.getY()/2);
@@ -225,8 +199,6 @@ public class Satellite extends Astre {
     public double normeRayon(){
         return Math.sqrt(getVecteurRayon().getX()*getVecteurRayon().getX() + getVecteurRayon().getY()*getVecteurRayon().getX());
     }
-
-
 
 }
 

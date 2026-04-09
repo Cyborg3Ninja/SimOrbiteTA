@@ -8,18 +8,20 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
+import static java.util.Map.entry;
 import static javafx.scene.paint.Color.*;
 
 public class JavaFX extends Application {
@@ -31,11 +33,23 @@ public class JavaFX extends Application {
     double centreX = getWidthSimulation() / 2.0;
     double centreY = HEIGHT / 2.0;
 
-    /*private ArrayList<Point2D> traceT = new ArrayList<>();
-    private ArrayList<Point2D> traceL = new ArrayList<>();*/
-
     private Point2D positionInitiale = null;
     private boolean orbiteComplete = false;
+
+    //
+    Map<String, String> map = Map.of(
+            "Rayon", "1;10",
+            "Periastre", "value2",
+            "Apoastre", "value3",
+            "Masse du Satellite","1;1",
+            "Masse du Corps Centrale","1;1",
+            "GM","1;1",
+            "Periode theorique","1;1",
+            "Corps Centrale","1;1"
+    );
+
+    private final HashMap<String, String> PARAM = new HashMap<>(map);
+
 
 
     ArrayList<Satellite> satellitesList = new ArrayList<>();
@@ -43,19 +57,13 @@ public class JavaFX extends Application {
 
     private Satellite terre = new Satellite(0, 0, 10, 147099894, 149598023,
             5.972 * Math.pow(10, 24), 1.989 * Math.pow(10, 30),
-            398600.4418, 31558145, soleil.getPosition(), 0, 0, BLUE);
+            398600.4418, 31558145, soleil, 0, 0, BLUE);
 
-    private Satellite lune = new Satellite(terre.getX(), terre.getY(), 5, 356400 , 406700,
+    private Satellite lune = new Satellite(terre.getX(), terre.getY(), 5, 356400 *50 , 406700 *50,
             7.35 * Math.pow(10, 22), 5.972 * Math.pow(10, 24), 2360448, 2548800,
-            terre.getPosition().multiply(1.00/ Constantes.ECHELLE), 0, 0, GRAY);
+            terre, 0, 0, GRAY);
 
 
-    //physiqueT.getC() = getDGA() / Constantes.ECHELLE * getE()
-    //10 = 20/2
-
-    /*Point2D ancre = new Point2D(centreX, centreY);
-    Physique physiqueT = new Physique(terre, ancre, 0, 0);;
-    Physique physiqueL = new Physique(lune, terre.getPosition(), 0, 0);*/
 
 
     private static double tempsSimulation = 0;
@@ -73,6 +81,9 @@ public class JavaFX extends Application {
 
         simulation.setStyle("-fx-background-color: #000000;");
         simulation.setPrefWidth(getWidthSimulation());
+
+        satellitesList.add(terre);
+        satellitesList.add(lune);
 
         menu = new VBox(15); // 15 est l'espacement entre les éléments
         menu.setStyle("-fx-background-color: #2c3e50;");
@@ -104,7 +115,91 @@ public class JavaFX extends Application {
             positionInitiale = null;
         });
 
-        menu.getChildren().addAll(aTemps, aTrace, boutonEffacer);
+
+        Button boutonAjouter = new Button("Ajouter planète");
+        boutonAjouter.setStyle("-fx-font-size: 14px; -fx-background-color: #3498db; -fx-text-fill: white;");
+
+
+        boutonAjouter.setOnAction(e -> {
+            // Fenêtre principale (VBox)
+            VBox mainLayout = new VBox(20); // Spacing de 20px entre les lignes
+            mainLayout.setPadding(new javafx.geometry.Insets(25)); // Marges intérieures
+            mainLayout.setAlignment(javafx.geometry.Pos.CENTER);
+            mainLayout.setStyle("-Inner-background-color: #2c3e50; -fx-background-color: #f4f4f4;");
+
+            ArrayList<Slider> inputsList = new ArrayList<>();
+
+            Text title = new Text("Configuration");
+            title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #34495e;");
+            mainLayout.getChildren().add(title);
+
+            for (String p : PARAM.keySet()) {
+                HBox row = new HBox(10);
+                Text label = new Text(p);
+                label.setWrappingWidth(120);
+
+                Slider slider = new Slider(1,1,1);
+
+                // On garde la référence du TextField
+                inputsList.add(slider);
+
+                row.getChildren().addAll(label, slider);
+                mainLayout.getChildren().add(row);
+            }
+
+            // Bouton de validation
+            Button fini = new Button("Enregistrer le Satellite");
+            fini.setPrefWidth(200);
+            fini.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+
+            fini.setOnAction(event -> {
+                try {
+                    ArrayList<Double> donneesPhysiques = new ArrayList<>();
+                    for(Slider s : inputsList) {
+                        // Remplacer les virgules par des points pour éviter les erreurs Java
+                        donneesPhysiques.add(s.getValue());
+                    }
+                    Satellite nouveau = new Satellite(
+                            0, 0,           // x, y initiaux (seront écrasés par position())
+                            donneesPhysiques.get(0),       // rayon du cercle à l'écran
+                            donneesPhysiques.get(1),       // rayonPeriastre
+                            donneesPhysiques.get(2),       // rayonApoastre
+                            donneesPhysiques.get(3),       // masseSatellite
+                            donneesPhysiques.get(4),       // masseCorpsCentral
+                            donneesPhysiques.get(5),       // Gm
+                            donneesPhysiques.get(6).longValue(), // periodeTheorique (converti en long si nécessaire)
+                            soleil,         // corpsCentral (par défaut le soleil ici) AJOUTER SELECTOR
+                            0, 0,           // temps, tempsP
+                            Color.RED       // couleur par défaut ( ajouter un ColorPicker !)
+                    );
+
+
+                } catch (NumberFormatException err) {
+                    System.out.println("Erreur : Veuillez entrer des chiffres valides !");
+                }
+            });
+
+            // Effet hover simple
+            fini.setOnMouseEntered(event -> fini.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;"));
+            fini.setOnMouseExited(event -> fini.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;"));
+
+            mainLayout.getChildren().addAll(fini);
+
+            Scene secondScene = new Scene(mainLayout, 350, 450); // Légèrement plus large pour le confort
+
+            Stage newWindow = new Stage();
+
+            fini.setOnAction(event ->
+                    newWindow.close());
+
+            newWindow.setTitle("Nouveau Satellite");
+            newWindow.setScene(secondScene);
+            newWindow.show();
+        });
+
+
+
+        menu.getChildren().addAll(aTemps, aTrace, boutonEffacer, boutonAjouter);
 
 
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
@@ -121,18 +216,6 @@ public class JavaFX extends Application {
         // Initialisations
         ArrierePlan arrierePlan = new ArrierePlan();
 
-
-        // Position de référence pour la physiqueT
-        //Point2D ancre = new Point2D(soleil.getX() + 10, soleil.getY() + 10);
-        //Point2D ancre = new Point2D(centreX, centreY);
-
-        //Physique de terre- soleil
-        /*for (Satellite s : satellitesList) {
-            physiquesList.add(new Physique(s, s.getCorpsCentrale().getPosition(), tempsSimulation,0));
-        }*/
-
-        satellitesList.add(terre);
-        satellitesList.add(lune);
 
 
 
@@ -172,21 +255,10 @@ public class JavaFX extends Application {
 
     private void update() {
 
-        /*Point2D positionT = terre.position(tempsSimulation);
-
-        terre.setX(positionT.getX() - terre.getTaille().getX() / 2 + terre.getC());
-        terre.setY(positionT.getY() - terre.getTaille().getY() / 2);*/
-
         for (Satellite s : satellitesList) {
+            s.updateAncre();
+            s.position(s.getC());
 
-           // Point2D position = s.position();
-            if (s == terre) {
-                s.setPosition(s.position(s.getC()));
-            } else {
-                s.setPosition(s.position(0));
-                System.out.println(s.position);
-                System.out.println(s.positionCorpsCentrale);
-            }
 
 
             /*if (position.getX() > getWidthSimulation()) {
@@ -194,18 +266,6 @@ public class JavaFX extends Application {
             }
             if (position.getY() > HEIGHT) {
                 position = new Point2D(position.getX(), HEIGHT);
-            }*/
-           /* if(s.getCorpsCentrale() == soleil) {
-                s.setAncre(s.getCorpsCentrale().getPosition());
-                s.setX(position.getX() - s.getTaille().getX() / 2+ s.getC());
-                s.setY(position.getY() - s.getTaille().getY() / 2);
-
-            } *//*else if (s.getCorpsCentrale() == terre){
-                s.setAncre(s.getCorpsCentrale().getPosition().multiply(1.0/Constantes.ECHELLE));
-                s.setX(position.getX() + s.getCorpsCentrale().getTaille().getX() /2- s.getTaille().getX() / 2);
-                s.setY(position.getY() + s.getCorpsCentrale().getTaille().getY() /2 - s.getTaille().getY() / 2);
-                s.setAncre(s.corpsCentrale.getPosition());
-            //pas de c car pas visible
             }*/
 
             Point2D pointTrace = new Point2D(s.getX() + s.getTaille().getX() / 2, s.getY() + s.getTaille().getY() / 2);
@@ -215,27 +275,6 @@ public class JavaFX extends Application {
                 s.getTrace().removeFirst();
             }
         }
-        /*Point2D positionL = lune.position(tempsSimulation);
-        lune.setAncre(terre.getPosition());*/
-
-        //pas de c car pas visible
-       /* lune.setX(positionL.getX() + terre.getTaille().getX() / 2 - lune.getTaille().getX() / 2);
-        lune.setY(positionL.getY() + terre.getTaille().getY() / 2 - lune.getTaille().getY() / 2);
-        lune.setAncre(terre.getPosition());*/
-
-
-        /*if (!orbiteComplete) {
-            traceT.add(positionT);
-
-            if (positionT.distance(positionInitiale) < 2 && traceT.size() > 100) {
-                orbiteComplete = true;
-            }
-        }
-
-        Point2D posCentreeL = lune.centrer(positionL);
-        if (posCentreeL.getX() > 10 && posCentreeL.getY() > 10) { // Seuil arbitraire
-            traceL.add(posCentreeL);
-        }*/
 
         accelerationTemps = sliderTemps.getValue() * 2000000;
 
@@ -261,44 +300,6 @@ public class JavaFX extends Application {
             s.draw(gc);
         }
     }
-    /*private void draw(GraphicsContext gc) {
-
-
-        gc.clearRect(0, 0, WIDTH, HEIGHT);
-
-        gc.setLineWidth(2);
-
-        gc.setStroke(Color.rgb(255, 255, 255, 0.35));
-
-        for (Satellite s :
-                satellitesList) {
-            gc.setFill(s.couleur);
-            s.draw(gc);
-            dessinerTrace(s.getTrace(), gc);
-
-        }*/
-        /*dessinerTrace(traceT, gc);
-
-        gc.setLineWidth(1);
-
-        gc.setStroke(Color.rgb(167, 0, 255, 0.5));
-        dessinerTrace(traceL, gc);*/
-
-
-    // Soleil
-        /*gc.setFill(Color.YELLOW);
-        soleil.draw(gc);
-
-        gc.rect(100,100,100,100);*/
-        /*
-        // Terre
-        gc.setFill(Color.BLUE);
-        terre.draw(gc);
-
-        // Lune
-        gc.setFill(GRAY);
-        lune.draw(gc);*/
-
 
     public static double getTempsSimulation() {
         return tempsSimulation;
@@ -323,6 +324,13 @@ public class JavaFX extends Application {
                     p2.getX(), p2.getY()
             );
         }
+    }
+
+    public HBox addHbox(Text text){
+        HBox hbox = new HBox();
+        TextField textField = new TextField();
+        hbox.getChildren().addAll(text, textField);
+        return hbox;
     }
 
 
