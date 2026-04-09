@@ -158,8 +158,8 @@ public class Satellite extends Astre {
         Point2D vecteurRayon = new Point2D(x, y);
         Point2D pointEspace = ancre.add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE));
 
-        setX(pointEspace.getX() - taille.getX()/2 + c);
-        setY(pointEspace.getY() - taille.getY()/2);
+        setX(pointEspace.getX() - taille.getX()/2 + c + corpsCentrale.getLargeur()/2);
+        setY(pointEspace.getY() - taille.getY()/2 + corpsCentrale.getLargeur()/2);
 
         return pointEspace; //appliqué l'échelle avant d'add getAncre()
     }

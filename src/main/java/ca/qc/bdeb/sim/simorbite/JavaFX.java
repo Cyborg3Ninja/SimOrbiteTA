@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
+import java.util.Random;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -20,6 +21,7 @@ import javafx.util.converter.NumberStringConverter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -37,22 +39,19 @@ public class JavaFX extends Application {
     private Point2D positionInitiale = null;
     private boolean orbiteComplete = false;
 
+    ArrayList<TextField> textFields = new ArrayList<>();
+    ArrayList<Slider> inputsList = new ArrayList<>();
 
-    Map<String, String> map = Map.of(
-            "Rayon", "1;10",
-            "Periastre", "10000000;200000000",
-            "Apoastre", "10000000;200000000"
-            /*"Masse du Satellite","1;1",
+    private final LinkedHashMap<String, String> PARAM = new LinkedHashMap<>() {{
+        put("Rayon", "1;10");
+        put("Periastre", "11000000;200000000");
+        put("Apoastre", "11000000;200000000");
+        /*"Masse du Satellite","1;1",
             "Masse du Corps Centrale","1;1",
             "GM","1;1",
             "Periode theorique","1;1",
             "Corps Centrale","1;1"*/
-    );
-
-    ArrayList<TextField> textFields = new ArrayList<>();
-    ArrayList<Slider> inputsList = new ArrayList<>();
-
-    private final HashMap<String, String> PARAM = new HashMap<>(map);
+    }};
 
 
 
@@ -105,7 +104,7 @@ public class JavaFX extends Application {
         HBox aTrace = new HBox();
         Text textTrace = new Text("Longeur trace");
         textTrace.setFill(WHITE);
-        sliderTrace = new Slider(1, 500, 50);
+        sliderTrace = new Slider(0, 1000, 50);
         aTrace.getChildren().addAll(textTrace, sliderTrace);
         sliderTrace.setShowTickLabels(true);
 
@@ -169,6 +168,8 @@ public class JavaFX extends Application {
                 mainLayout.getChildren().add(row);
             }
 
+            Stage newWindow = new Stage();
+
             // Bouton de validation
             Button fini = new Button("Enregistrer le Satellite");
             fini.setPrefWidth(200);
@@ -181,19 +182,26 @@ public class JavaFX extends Application {
                         // Remplacer les virgules par des points pour éviter les erreurs Java
                         donneesPhysiques.add(s.getValue());
                     }
+                    // Teinte : 0-360 (toutes les couleurs)
+                    // Saturation : 0.8 (très coloré, pas de gris)
+                    // Luminosité : 0.9 (très brillant, pas de sombre)
+                    Color couleurClaire = Color.hsb(Math.random() * 360, 0.8, 0.9);
                     Satellite nouveau = new Satellite(
                             0, 0,           // x, y initiaux (seront écrasés par position())
                             donneesPhysiques.get(0),       // rayon du cercle à l'écran
                             donneesPhysiques.get(1),       // rayonPeriastre
                             donneesPhysiques.get(2),       // rayonApoastre
-                            donneesPhysiques.get(3),       // masseSatellite
+                            5.972e24, 1.989e30, 398600.44, 31558145,
+                            /*donneesPhysiques.get(3),       // masseSatellite
                             donneesPhysiques.get(4),       // masseCorpsCentral
                             donneesPhysiques.get(5),       // Gm
-                            donneesPhysiques.get(6).longValue(), // periodeTheorique (converti en long si nécessaire)
+                            donneesPhysiques.get(6).longValue(), // periodeTheorique (converti en long si nécessaire)*/
                             soleil,         // corpsCentral (par défaut le soleil ici) AJOUTER SELECTOR
                             0, 0,           // temps, tempsP
-                            Color.RED       // couleur par défaut ( ajouter un ColorPicker !)
+                            couleurClaire      // couleur random
                     );
+                    satellitesList.add(nouveau);
+                    newWindow.close();
 
 
                 } catch (Exception err) {
@@ -208,11 +216,6 @@ public class JavaFX extends Application {
             mainLayout.getChildren().addAll(fini);
 
             Scene secondScene = new Scene(mainLayout, 450, 450); // Légèrement plus large pour le confort
-
-            Stage newWindow = new Stage();
-
-            fini.setOnAction(event ->
-                    newWindow.close());
 
             newWindow.setTitle("Nouveau Satellite");
             newWindow.setScene(secondScene);
