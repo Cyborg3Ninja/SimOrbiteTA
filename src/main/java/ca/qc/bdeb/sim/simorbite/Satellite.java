@@ -121,6 +121,10 @@ public class Satellite extends Astre {
         return getDGA() / Constantes.ECHELLE * getE();
     }
 
+    public Astre getCorpsCentrale(){
+        return corpsCentrale;
+    }
+
 
     //double distance = calculDistance();
     //double force = forceTerreSoleil(distance);
@@ -205,6 +209,8 @@ public class Satellite extends Astre {
     public double forceTerreSoleil(double distance){
         return -calculForceGravitionnelle() * getMasseCorpsCentral() * getMasseSatellite() / (distance * distance);
     }
+
+
 
     public double calculVitesseA(){
         return Math.sqrt(getGm()*(1-getE()/ getDGA() *(1+getE())));

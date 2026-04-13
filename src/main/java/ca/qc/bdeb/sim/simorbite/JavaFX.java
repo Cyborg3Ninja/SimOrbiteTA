@@ -74,9 +74,9 @@ public class JavaFX extends Application {
     VBox menu;
     Slider sliderTemps;
     Slider sliderTrace;
+    CheckBox traceInfini;
     Button boutonEffacer;
     ComboBox<Satellite> comboSupprimer;
-
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -107,6 +107,8 @@ public class JavaFX extends Application {
         sliderTrace = new Slider(0, 1000, 50);
         aTrace.getChildren().addAll(textTrace, sliderTrace);
         sliderTrace.setShowTickLabels(true);
+        traceInfini = new CheckBox("Trace Infini");
+        traceInfini.setTextFill(WHITE);
 
         boutonEffacer = new Button("Effacer orbite");
         boutonEffacer.setStyle("-fx-font-size: 14px; -fx-background-color: #e74c3c; -fx-text-fill: white;");
@@ -235,7 +237,6 @@ public class JavaFX extends Application {
                         );
                         satellitesList.add(nouveau);
                         refreshComboSupprimer(comboSupprimer);
-
                         newWindow.close();
 
 
@@ -261,11 +262,14 @@ public class JavaFX extends Application {
 
         comboSupprimer = new ComboBox<>();
 
+
         comboSupprimer.setPrefWidth(200);
         refreshComboSupprimer(comboSupprimer);
 
+
         Button boutonSupprimer = new Button("Supprimer planète");
         boutonSupprimer.setStyle("-fx-font-size: 14px; -fx-background-color: #c0392b; -fx-text-fill: white;");
+
 
         boutonSupprimer.setOnAction(e -> {
             Satellite selection = comboSupprimer.getValue();
@@ -276,7 +280,9 @@ public class JavaFX extends Application {
             }
         });
 
-        menu.getChildren().addAll(aTemps, aTrace, boutonEffacer, boutonAjouter, comboSupprimer, boutonSupprimer);
+        HBox supprimer = new HBox();
+        supprimer.getChildren().addAll(comboSupprimer, boutonSupprimer);
+            menu.getChildren().addAll(aTemps, aTrace, traceInfini, boutonEffacer, boutonAjouter, supprimer);
 
 
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
@@ -348,8 +354,10 @@ public class JavaFX extends Application {
             Point2D pointTrace = new Point2D(s.getX() + s.getTaille().getX() / 2, s.getY() + s.getTaille().getY() / 2);
             s.getTrace().add(pointTrace);
 
-            while (s.getTrace().size() > sliderTrace.getValue()) {
-                s.getTrace().removeFirst();
+            if(!traceInfini.isSelected()) {
+                while (s.getTrace().size() > sliderTrace.getValue()) {
+                    s.getTrace().removeFirst();
+                }
             }
         }
 
@@ -414,11 +422,13 @@ public class JavaFX extends Application {
         return hbox;
     }
 
+
     private void refreshComboSupprimer(ComboBox<Satellite> combo) {
         combo.getItems().clear();
         combo.getItems().addAll(this.satellitesList);
-    }
 
+
+    }
 
 
     public static void main(String[] args) {
