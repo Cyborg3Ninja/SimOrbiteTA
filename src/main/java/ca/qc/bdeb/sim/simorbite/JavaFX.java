@@ -75,6 +75,8 @@ public class JavaFX extends Application {
     Slider sliderTemps;
     Slider sliderTrace;
     Button boutonEffacer;
+    ComboBox<Satellite> comboSupprimer;
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -232,6 +234,8 @@ public class JavaFX extends Application {
                                 couleurClaire      // couleur random
                         );
                         satellitesList.add(nouveau);
+                        refreshComboSupprimer(comboSupprimer);
+
                         newWindow.close();
 
 
@@ -255,9 +259,24 @@ public class JavaFX extends Application {
             newWindow.show();
         });
 
+        comboSupprimer = new ComboBox<>();
 
+        comboSupprimer.setPrefWidth(200);
+        refreshComboSupprimer(comboSupprimer);
 
-        menu.getChildren().addAll(aTemps, aTrace, boutonEffacer, boutonAjouter);
+        Button boutonSupprimer = new Button("Supprimer planète");
+        boutonSupprimer.setStyle("-fx-font-size: 14px; -fx-background-color: #c0392b; -fx-text-fill: white;");
+
+        boutonSupprimer.setOnAction(e -> {
+            Satellite selection = comboSupprimer.getValue();
+
+            if (selection != null) {
+                satellitesList.remove(selection);
+                refreshComboSupprimer(comboSupprimer);
+            }
+        });
+
+        menu.getChildren().addAll(aTemps, aTrace, boutonEffacer, boutonAjouter, comboSupprimer, boutonSupprimer);
 
 
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
@@ -394,6 +413,12 @@ public class JavaFX extends Application {
         hbox.getChildren().addAll(text, textField);
         return hbox;
     }
+
+    private void refreshComboSupprimer(ComboBox<Satellite> combo) {
+        combo.getItems().clear();
+        combo.getItems().addAll(this.satellitesList);
+    }
+
 
 
     public static void main(String[] args) {
