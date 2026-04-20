@@ -23,8 +23,9 @@ import java.util.Map;
 
 import static java.util.Map.entry;
 import static javafx.scene.paint.Color.*;
-
+//gay
 public class JavaFX extends Application {
+
 
     static final int WIDTH = 900;
     final int HEIGHT = 600;
