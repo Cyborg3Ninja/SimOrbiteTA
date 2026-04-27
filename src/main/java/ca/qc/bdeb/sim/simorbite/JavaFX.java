@@ -270,6 +270,7 @@ public class JavaFX extends Application {
                     );
 
                     this.satellitesList.add(nouveau);
+                    refreshComboSupprimer(comboSupprimer);
                     newWindow.close();
 
                 } catch (Exception ex) {
@@ -310,8 +311,8 @@ public class JavaFX extends Application {
             Satellite selection = comboSupprimer.getValue();
 
             if (selection != null) {
-                satellitesList.remove(selection);
-                refreshComboSupprimer(comboSupprimer);
+                supprimerAvecSatellites(selection);
+                comboSupprimer.getItems().remove(selection);
             }
         });
 
@@ -370,6 +371,27 @@ public class JavaFX extends Application {
         stage.show();
 
     }
+
+    private void supprimerAvecSatellites(Astre cible) {
+
+        // Liste temporaire pour éviter modification pendant boucle
+        ArrayList<Satellite> aSupprimer = new ArrayList<>();
+
+        for (Satellite s : satellitesList) {
+            if (s.corpsCentrale == cible) {
+                aSupprimer.add(s);
+            }
+        }
+
+        // Supprimer récursivement les satellites trouvés
+        for (Satellite s : aSupprimer) {
+            supprimerAvecSatellites(s);
+        }
+
+        // Supprimer l'objet lui-même s'il est dans la liste
+        satellitesList.remove(cible);
+    }
+
 
     private void update() {
 
