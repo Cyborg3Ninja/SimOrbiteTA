@@ -145,6 +145,11 @@ public class JavaFX extends Application {
             nom.setWrappingWidth(100);
             TextField tfNom = new TextField();
 
+            Text erreurNom = new Text();
+            erreurNom.setFill(Color.RED);
+            mainLayout.getChildren().add(erreurNom);
+
+
             nomRange.getChildren().addAll(nom, tfNom);
             mainLayout.getChildren().add(nomRange);
             for (String p : PARAM.keySet()) {
@@ -201,6 +206,10 @@ public class JavaFX extends Application {
 
             mainLayout.getChildren().add(rowCorps); // Ajoute-le avant ou après tes sliders
 
+            Text messageErreur = new Text();
+            messageErreur.setFill(Color.RED);
+            mainLayout.getChildren().add(messageErreur);
+
             Stage newWindow = new Stage();
 
             // Bouton de validation
@@ -208,44 +217,66 @@ public class JavaFX extends Application {
             fini.setPrefWidth(200);
             fini.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
 
-            fini.setOnAction(event -> {
-                if (!tfNom.getText().isEmpty()) {
-                    try {
-                        ArrayList<Double> donneesPhysiques = new ArrayList<>();
-                        for (Slider s : inputsList) {
-                            // Remplacer les virgules par des points pour éviter les erreurs Java
-                            donneesPhysiques.add(s.getValue());
-                        }
-                        // Teinte : 0-360 (toutes les couleurs)
-                        // Saturation : 0.8 (très coloré, pas de gris)
-                        // Luminosité : 0.9 (très brillant, pas de sombre)
-                        Color couleurClaire = Color.hsb(Math.random() * 360, 0.8, 0.9);
-                        Astre cible = comboCorps.getValue();
-                        Satellite nouveau = new Satellite(
-                                0, 0,           // x, y initiaux (seront écrasés par position())
-                                donneesPhysiques.get(0),       // rayon du cercle à l'écran
-                                tfNom.getText(), //nom
-                                donneesPhysiques.get(1),       // rayonPeriastre
-                                donneesPhysiques.get(2),       // rayonApoastre
-                                0, 398600.44, donneesPhysiques.get(3),
-                            /*donneesPhysiques.get(3),       // masseSatellite
-                            donneesPhysiques.get(4),       // masseCorpsCentral
-                            donneesPhysiques.get(5),       // Gm
-                            donneesPhysiques.get(6).longValue(), // periodeTheorique (converti en long si nécessaire)*/
-                                cible,         // corpsCentral (par défaut le soleil ici) AJOUTER SELECTOR
-                                0, 0,           // temps, tempsP
-                                couleurClaire      // couleur random
-                        );
-                        satellitesList.add(nouveau);
-                        refreshComboSupprimer(comboSupprimer);
-                        newWindow.close();
+            fini.setOnAction((event) -> {
 
+                boolean valide = true;
+                messageErreur.setText("");
+                erreurNom.setText("");
 
-                    } catch (Exception err) {
-                        System.out.println("Erreur");
+                // reset styles
+                tfNom.setStyle("");
+
+                // Vérifier champ nom vide
+                if (tfNom.getText().trim().isEmpty()) {
+                    tfNom.setStyle("-fx-border-color: red;");
+                    messageErreur.setText("Veuillez remplir tous les champs.");
+                    valide = false;
+                }
+
+                // Vérifier doublon de nom
+                for (Satellite s : this.satellitesList) {
+                    if (s.getNom().equalsIgnoreCase(tfNom.getText().trim())) {
+                        erreurNom.setText("Deux satellites ne peuvent pas avoir le même nom.");
+                        tfNom.setStyle("-fx-border-color: red;");
+                        valide = false;
+                        break;
                     }
                 }
+
+                if (!valide) return;
+
+                try {
+                    ArrayList<Double> donneesPhysiques = new ArrayList<>();
+
+                    for (Slider s : this.inputsList) {
+                        donneesPhysiques.add(s.getValue());
+                    }
+
+                    Color couleurClaire = Color.hsb(Math.random() * 360, 0.8, 0.9);
+                    Astre cible = (Astre) comboCorps.getValue();
+
+                    Satellite nouveau = new Satellite(
+                            0, 0,
+                            donneesPhysiques.get(0),
+                            tfNom.getText(),
+                            donneesPhysiques.get(1),
+                            donneesPhysiques.get(2),
+                            0.0,
+                            398600.44,
+                            donneesPhysiques.get(3),
+                            cible,
+                            0, 0,
+                            couleurClaire
+                    );
+
+                    this.satellitesList.add(nouveau);
+                    newWindow.close();
+
+                } catch (Exception ex) {
+                    messageErreur.setText("Erreur lors de la création.");
+                }
             });
+
 
 
             // Effet hover simple
@@ -253,6 +284,8 @@ public class JavaFX extends Application {
             fini.setOnMouseExited(event -> fini.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;"));
 
             mainLayout.getChildren().addAll(fini);
+
+
 
             Scene secondScene = new Scene(mainLayout, 450, 450); // Légèrement plus large pour le confort
 
@@ -265,6 +298,7 @@ public class JavaFX extends Application {
 
 
         comboSupprimer.setPrefWidth(200);
+        comboSupprimer.setVisibleRowCount(10);
         refreshComboSupprimer(comboSupprimer);
 
 
