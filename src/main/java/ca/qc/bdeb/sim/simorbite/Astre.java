@@ -21,10 +21,8 @@ public class Astre extends Vecteur {
     public String getNom(){
         return nom;
     }
-    public void masseToRayon(double masse, int constante){
-    //9.807 = G * Mt / Rt^2 terre
-//return rayon
-    }
+
+
     @Override
     public String toString() {
         return this.nom;

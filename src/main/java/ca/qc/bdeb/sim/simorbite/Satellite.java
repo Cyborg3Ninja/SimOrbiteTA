@@ -52,10 +52,6 @@ public class Satellite extends Astre {
         this.temps = temps;
     }
 
-    public Point2D getAncre() {
-        return corpsCentrale.getPosition();
-    }
-
     public double getRayonPeriastre() {
         return rayonPeriastre;
     }
@@ -112,17 +108,9 @@ public class Satellite extends Astre {
         return 2*Math.atan(Math.sqrt((1+getE())/(1-getE())*tan(getAnomalieExcentrique()/2)));
     }
 
-    public Point2D getVecteurRayon(){
-        return new Point2D(getDGA()*(cos(getAnomalieExcentrique() - getE())), getDGA()*(Math.sqrt(1-getE()*getE())) * sin(getAnomalieExcentrique()));
-    }
-
     //Distance entre centre et le foyer
     public double getC(){
         return getDGA() / Constantes.ECHELLE * getE();
-    }
-
-    public Astre getCorpsCentrale(){
-        return corpsCentrale;
     }
 
 
@@ -144,27 +132,6 @@ public class Satellite extends Astre {
     public void updateAncre(){
         ancre = corpsCentrale.getPosition();
     }
-
-    /*public Point2D position(double c) {
-
-        double deltaT = temps - tempsP;
-
-        double anomalieMoyenne = (getMoyenneMouvement() * deltaT) % (2*Math.PI);
-        if (anomalieMoyenne < 0) anomalieMoyenne += 2 * Math.PI;
-
-        double E = calculApproximationAnomalieExcentrique(anomalieMoyenne);
-
-        double x = getDGA() * (Math.cos(E) - getE());
-        double y = -getDGA() * (Math.sqrt(1 - getE() * getE()) * Math.sin(E));
-
-        Point2D vecteurRayon = new Point2D(x, y);
-        Point2D pointEspace = ancre.add(vecteurRayon.multiply(1.0 / Constantes.ECHELLE));
-
-        setX(pointEspace.getX() - taille.getX()/2 + c + corpsCentrale.getLargeur()/2);
-        setY(pointEspace.getY() - taille.getY()/2 + corpsCentrale.getLargeur()/2);
-
-        return pointEspace; //appliqué l'échelle avant d'add getAncre()
-    }*/
 
     public Point2D position(double c) {
         double deltaT = temps - tempsP;
@@ -194,14 +161,6 @@ public class Satellite extends Astre {
         return 6.67*Math.pow(10, -11) * getMasseSatellite() * getMasseCorpsCentral() / (calculDistance()*calculDistance());
     }
 
-    public Point2D centrer(Point2D point2D){
-        return new Point2D(getX() + getLargeur()/2, getY() + getLargeur()/2);
-    }
-
-    public static double norme(Point2D p){
-        return Math.sqrt(p.getX() * p.getX() + p.getY()*p.getY());
-    }
-
     public double calculDistance (){
         return getParametreEllipse()/(1+getE()*cos(getAnomalieVraie() - angleP));
     }
@@ -209,25 +168,6 @@ public class Satellite extends Astre {
     public double forceTerreSoleil(double distance){
         return -calculForceGravitionnelle() * getMasseCorpsCentral() * getMasseSatellite() / (distance * distance);
     }
-
-
-
-    public double calculVitesseA(){
-        return Math.sqrt(getGm()*(1-getE()/ getDGA() *(1+getE())));
-    }
-
-    public double calculVitesseP(){
-        return Math.sqrt(getGm()*(1+getE())/ getDGA() *(1-getE()));
-    }
-
-    public double calculPeriode(){
-        return 2*PI*Math.sqrt(getDGA()*getDGA()*getDGA()/ getGm());
-    }
-
-    public double normeRayon(){
-        return Math.sqrt(getVecteurRayon().getX()*getVecteurRayon().getX() + getVecteurRayon().getY()*getVecteurRayon().getX());
-    }
-
 }
 
 

@@ -14,7 +14,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -124,13 +123,124 @@ public class JavaFX extends Application {
         );
 
         boutonEffacer.setOnAction(e -> {
-            for (Satellite s :
-                    satellitesList) {
+            for (Satellite s : satellitesList) {
                 s.getTrace().clear();
             }
         });
 
 
+        Button boutonAjouter = getBoutonAjouter();
+
+        comboSupprimer = new ComboBox<>();
+        comboSupprimer.setStyle(
+                "-fx-background-color: #0f2027;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: white;"
+        );
+        //forcer la sélection à afficher le nom en blanc
+        comboSupprimer.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Satellite item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getNom());
+                    setTextFill(Color.WHITE);
+                }
+            }
+        });
+
+        comboSupprimer.setPrefWidth(200);
+        comboSupprimer.setVisibleRowCount(10);
+        refreshComboSupprimer(comboSupprimer);
+
+
+        Button boutonSupprimer = getBoutonSupprimer();
+
+        HBox supprimer = new HBox();
+        supprimer.getChildren().addAll(comboSupprimer, boutonSupprimer);
+        menu.getChildren().addAll(aTemps, aTrace, traceInfini, boutonEffacer, boutonAjouter, supprimer);
+
+
+        Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
+
+        Canvas canvas = new Canvas(WIDTH - 50, HEIGHT);
+
+        Random rand = new Random();
+        for (int i = 0; i < 150; i++) {
+            etoiles.add(new Etoile(
+                    rand.nextDouble() * getWidthSimulation(),
+                    rand.nextDouble() * HEIGHT
+            ));
+        }
+        GraphicsContext context = canvas.getGraphicsContext2D();
+
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode().toString().equals("ESCAPE")) {
+                Platform.exit();
+            }
+        });
+
+        AnimationTimer timer = new AnimationTimer() {
+
+            private long dernierTemps = System.nanoTime();
+
+            @Override
+            public void handle(long temps) {
+
+                double deltaTemps = (temps - dernierTemps) * 1e-9;
+                dernierTemps = temps;
+
+                // accélérer le temps pour l'animation
+                tempsSimulation += deltaTemps * accelerationTemps;
+
+                for (Satellite s : satellitesList) {
+                    s.setTemps(tempsSimulation);
+                }
+
+                update();
+                draw(context);
+            }
+        };
+
+        timer.start();
+
+        simulation.getChildren().add(canvas);
+        root.setCenter(simulation);
+        root.setRight(menu);
+        stage.setTitle("Simulation orbite");
+        stage.setResizable(true);
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.setFullScreen(false);
+        stage.setMaximized(false);
+        mettreIcone(stage);
+
+        stage.show();
+
+    }
+
+    private Button getBoutonSupprimer() {
+        Button boutonSupprimer = new Button("Supprimer planète");
+        boutonSupprimer.setStyle(
+                "-fx-background-color: linear-gradient(to right, #ff416c, #ff4b2b);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-background-radius: 8;"
+        );
+
+
+        boutonSupprimer.setOnAction(e -> {
+            Satellite selection = comboSupprimer.getValue();
+            if (selection != null) {
+                supprimerAvecSatellites(selection);
+                comboSupprimer.getItems().remove(selection);
+            }
+        });
+        return boutonSupprimer;
+    }
+
+    private Button getBoutonAjouter() {
         Button boutonAjouter = new Button("Ajouter planète");
         boutonAjouter.setStyle(
                 "-fx-background-color: linear-gradient(to right, #00c6ff, #0072ff);" +
@@ -303,116 +413,14 @@ public class JavaFX extends Application {
 
 
 
-            Scene secondScene = new Scene(mainLayout, 450, 450); // Légèrement plus large pour le confort
+            Scene secondScene = new Scene(mainLayout, 450, 550); // Légèrement plus large pour le confort
 
             newWindow.setTitle("Nouveau Satellite");
             newWindow.setScene(secondScene);
+            mettreIcone(newWindow);
             newWindow.show();
         });
-
-        comboSupprimer = new ComboBox<>();
-        comboSupprimer.setStyle(
-                "-fx-background-color: #0f2027;" +
-                        "-fx-text-fill: white;" +
-                "-fx-prompt-text-fill: white;"
-        );
-        //forcer la sélection à afficher le nom en blanc
-        comboSupprimer.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(Satellite item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getNom());
-                    setTextFill(Color.WHITE);
-                }
-            }
-        });
-
-        comboSupprimer.setPrefWidth(200);
-        comboSupprimer.setVisibleRowCount(10);
-        refreshComboSupprimer(comboSupprimer);
-
-
-        Button boutonSupprimer = new Button("Supprimer planète");
-        boutonSupprimer.setStyle(
-                "-fx-background-color: linear-gradient(to right, #ff416c, #ff4b2b);" +
-                        "-fx-text-fill: white;" +
-                        "-fx-background-radius: 8;"
-        );
-
-
-
-        boutonSupprimer.setOnAction(e -> {
-            Satellite selection = comboSupprimer.getValue();
-
-            if (selection != null) {
-                supprimerAvecSatellites(selection);
-                comboSupprimer.getItems().remove(selection);
-            }
-        });
-
-        HBox supprimer = new HBox();
-        supprimer.getChildren().addAll(comboSupprimer, boutonSupprimer);
-            menu.getChildren().addAll(aTemps, aTrace, traceInfini, boutonEffacer, boutonAjouter, supprimer);
-
-
-        Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
-
-        Canvas canvas = new Canvas(WIDTH - 50, HEIGHT);
-
-        Random rand = new Random();
-        for (int i = 0; i < 150; i++) {
-            etoiles.add(new Etoile(
-                    rand.nextDouble() * getWidthSimulation(),
-                    rand.nextDouble() * HEIGHT
-            ));
-        }
-        GraphicsContext context = canvas.getGraphicsContext2D();
-
-        scene.setOnKeyPressed(e -> {
-            if (e.getCode().toString().equals("ESCAPE")) {
-                Platform.exit();
-            }
-        });
-
-        AnimationTimer timer = new AnimationTimer() {
-
-            private long dernierTemps = System.nanoTime();
-
-            @Override
-            public void handle(long temps) {
-
-                double deltaTemps = (temps - dernierTemps) * 1e-9;
-                dernierTemps = temps;
-
-                // accélérer le temps pour l'animation
-                tempsSimulation += deltaTemps * accelerationTemps;
-
-                for (Satellite s : satellitesList) {
-                    s.setTemps(tempsSimulation);
-                }
-
-                update();
-                draw(context);
-            }
-        };
-
-        timer.start();
-
-        simulation.getChildren().add(canvas);
-        root.setCenter(simulation);
-        root.setRight(menu);
-        stage.setTitle("Simulation orbite");
-        stage.setResizable(true);
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.setFullScreen(false);
-        stage.setMaximized(false);
-
-        stage.show();
-
+        return boutonAjouter;
     }
 
     private void supprimerAvecSatellites(Astre cible) {
@@ -440,7 +448,7 @@ public class JavaFX extends Application {
 
         for (Satellite s : satellitesList) {
             s.updateAncre();
-            s.position(01);
+            s.position(1);
 
 
             Point2D pointTrace = new Point2D(s.getX() + s.getTaille().getX() / 2, s.getY() + s.getTaille().getY() / 2);
@@ -479,7 +487,7 @@ public class JavaFX extends Application {
             gc.setStroke(s.couleur.deriveColor(0, 1, 1, 0.3));// Trace semi-transparente
             gc.setLineDashes(4, 6);
             dessinerTrace(s.getTrace(), gc);
-        }gc.setLineDashes(null);
+        }
 
         double pulse = (Math.sin(tempsSimulation * 0.00001) + 1) / 2; //val entre 0 et 1
 
@@ -535,12 +543,9 @@ public class JavaFX extends Application {
         }
     }
 
-    public static double getTempsSimulation() {
-        return tempsSimulation;
-    }
 
     public static double getWidthSimulation() {
-        return WIDTH - WIDTH / 3;
+        return (double) WIDTH - WIDTH / 3.0;
     }
 
     public static void dessinerTrace(ArrayList<Point2D> trace, GraphicsContext gc) {
@@ -560,13 +565,6 @@ public class JavaFX extends Application {
         }
     }
 
-    public HBox addHbox(Text text){
-        HBox hbox = new HBox();
-        TextField textField = new TextField();
-        hbox.getChildren().addAll(text, textField);
-        return hbox;
-    }
-
 
     private void refreshComboSupprimer(ComboBox<Satellite> combo) {
         combo.getItems().clear();
@@ -574,9 +572,16 @@ public class JavaFX extends Application {
 
 
     }
+    private void mettreIcone(Stage stage){
+        try {
+            // Le "/" au début cherche à la racine du dossier resources
+            javafx.scene.image.Image icon = new javafx.scene.image.Image(getClass().getResourceAsStream("/IconTerre.png"));
 
-
-    public static void main(String[] args) {
-        launch();
+            // On ajoute l'icône au stage
+            stage.getIcons().add(icon);
+        } catch (Exception e) {
+            System.out.println("L'icône n'a pas pu être chargée. Vérifiez le chemin.");
+        }
     }
+
 }
