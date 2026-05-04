@@ -13,32 +13,27 @@ import java.util.Random;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.util.converter.NumberStringConverter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
-import static java.util.Map.entry;
 import static javafx.scene.paint.Color.*;
-//gay
 public class JavaFX extends Application {
 
 
     static final int WIDTH = 900;
-    final int HEIGHT = 600;
+    static final int HEIGHT = 600;
 
     // Position du soleil (centre simulation)
     double centreX = getWidthSimulation() / 2.0;
     double centreY = HEIGHT / 2.0;
 
-    private Point2D positionInitiale = null;
-    private boolean orbiteComplete = false;
-
     ArrayList<TextField> textFields = new ArrayList<>();
     ArrayList<Slider> inputsList = new ArrayList<>();
+
+    private ArrayList<Etoile> etoiles = new ArrayList<>();
+
 
     private final LinkedHashMap<String, String> PARAM = new LinkedHashMap<>() {{
         put("Rayon", "3;10");
@@ -75,24 +70,33 @@ public class JavaFX extends Application {
     ComboBox<Satellite> comboSupprimer;
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
         BorderPane root = new BorderPane();
         Pane simulation = new Pane();
 
-        simulation.setStyle("-fx-background-color: #000000;");
+        simulation.setStyle(
+                "-fx-background-color: radial-gradient(center 50% 50%, radius 100%, #0b0f1a, #000000);"
+        );
+
         simulation.setPrefWidth(getWidthSimulation());
 
         satellitesList.add(terre);
         satellitesList.add(lune);
 
         menu = new VBox(15); // 15 est l'espacement entre les éléments
-        menu.setStyle("-fx-background-color: #2c3e50;");
-        menu.setPrefWidth(WIDTH / 3);   // Largeur fixe pour le menu
+        menu.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #1b2735, #090a0f);" +
+                        "-fx-border-color: #00c3ff;" +
+                        "-fx-border-width: 0 0 0 2;"
+        );
+        menu.setPrefWidth((double) WIDTH / 3);   // Largeur fixe pour le menu
         menu.setPadding(new javafx.geometry.Insets(20)); // Marges intérieures
 
         HBox aTemps = new HBox();
         Text textTemps = new Text("Accélération du temps");
         textTemps.setFill(WHITE);
+        textTemps.setStyle("-fx-font-size: 13px; -fx-fill: #d0e7ff;");
+
         sliderTemps = new Slider(1, 10, 1);
         aTemps.getChildren().addAll(textTemps, sliderTemps);
         sliderTemps.setShowTickLabels(true);
@@ -100,27 +104,40 @@ public class JavaFX extends Application {
         HBox aTrace = new HBox();
         Text textTrace = new Text("Longeur trace");
         textTrace.setFill(WHITE);
+        textTrace.setStyle("-fx-font-size: 13px; -fx-fill: #d0e7ff;");
+
         sliderTrace = new Slider(0, 1000, 50);
         aTrace.getChildren().addAll(textTrace, sliderTrace);
         sliderTrace.setShowTickLabels(true);
+
+        sliderTemps.setStyle("-fx-control-inner-background: #0f2027;");
+        sliderTrace.setStyle("-fx-control-inner-background: #0f2027;");
+
         traceInfini = new CheckBox("Trace Infini");
         traceInfini.setTextFill(WHITE);
 
         boutonEffacer = new Button("Effacer orbite");
-        boutonEffacer.setStyle("-fx-font-size: 14px; -fx-background-color: #e74c3c; -fx-text-fill: white;");
+        boutonEffacer.setStyle(
+                "-fx-background-color: linear-gradient(to right, #f7971e, #ffd200);" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-radius: 8;"
+        );
+
         boutonEffacer.setOnAction(e -> {
             for (Satellite s :
                     satellitesList) {
                 s.getTrace().clear();
             }
-            orbiteComplete = false;
-            positionInitiale = null;
         });
 
 
         Button boutonAjouter = new Button("Ajouter planète");
-        boutonAjouter.setStyle("-fx-font-size: 14px; -fx-background-color: #3498db; -fx-text-fill: white;");
-
+        boutonAjouter.setStyle(
+                "-fx-background-color: linear-gradient(to right, #00c6ff, #0072ff);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;"
+        );
 
         boutonAjouter.setOnAction(e -> {
             inputsList.clear();  // Vide les anciennes références
@@ -158,18 +175,18 @@ public class JavaFX extends Application {
                 double inf = Double.parseDouble(tab[0]);
                 double sup = Double.parseDouble(tab[1]);
 
-                // Slider : on lui donne la priorité pour prendre l'espace
+
                 Slider slider = new Slider(inf, sup, inf);
-                // On calcule une unité de graduation raisonnable (environ 10 marques max)
+
                 double range = sup - inf;
                 slider.setMajorTickUnit(range);
-                slider.setMinorTickCount(0); // On enlève les petites barres inutiles
+                slider.setMinorTickCount(0);
                 slider.setShowTickMarks(true);
                 slider.setShowTickLabels(true);
                 HBox.setHgrow(slider, Priority.ALWAYS);
                 inputsList.add(slider);
 
-                // TextField : on le garde petit
+
                 TextField tf = new TextField();
                 tf.setPrefWidth(100);
 
@@ -181,18 +198,18 @@ public class JavaFX extends Application {
                 mainLayout.getChildren().add(row);
             }
 
-            // 1. Créer le ComboBox
+
             ComboBox<Astre> comboCorps = new ComboBox<>();
 
-            // 2. Ajouter le Soleil et tous les satellites existants
+
             comboCorps.getItems().add(soleil);
             comboCorps.getItems().addAll(satellitesList);
 
-            // 3. Sélectionner le soleil par défaut et styliser
+            //Sélectionner le soleil par défaut et styliser
             comboCorps.getSelectionModel().selectFirst();
             comboCorps.setPrefWidth(200);
 
-            // 4. Ajouter au layout avec un label
+
             HBox rowCorps = new HBox(10);
             rowCorps.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             Text labelCorps = new Text("Orbiter autour de :");
@@ -206,6 +223,9 @@ public class JavaFX extends Application {
             mainLayout.getChildren().add(messageErreur);
 
             Stage newWindow = new Stage();
+            newWindow.setResizable(false);
+            newWindow.setFullScreen(false);
+
 
             // Bouton de validation
             Button fini = new Button("Enregistrer le Satellite");
@@ -248,7 +268,7 @@ public class JavaFX extends Application {
                     }
 
                     Color couleurClaire = Color.hsb(Math.random() * 360, 0.8, 0.9);
-                    Astre cible = (Astre) comboCorps.getValue();
+                    Astre cible = comboCorps.getValue();
 
                     Satellite nouveau = new Satellite(
                             0, 0,
@@ -291,7 +311,24 @@ public class JavaFX extends Application {
         });
 
         comboSupprimer = new ComboBox<>();
-
+        comboSupprimer.setStyle(
+                "-fx-background-color: #0f2027;" +
+                        "-fx-text-fill: white;" +
+                "-fx-prompt-text-fill: white;"
+        );
+        //forcer la sélection à afficher le nom en blanc
+        comboSupprimer.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Satellite item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getNom());
+                    setTextFill(Color.WHITE);
+                }
+            }
+        });
 
         comboSupprimer.setPrefWidth(200);
         comboSupprimer.setVisibleRowCount(10);
@@ -299,7 +336,12 @@ public class JavaFX extends Application {
 
 
         Button boutonSupprimer = new Button("Supprimer planète");
-        boutonSupprimer.setStyle("-fx-font-size: 14px; -fx-background-color: #c0392b; -fx-text-fill: white;");
+        boutonSupprimer.setStyle(
+                "-fx-background-color: linear-gradient(to right, #ff416c, #ff4b2b);" +
+                        "-fx-text-fill: white;" +
+                        "-fx-background-radius: 8;"
+        );
+
 
 
         boutonSupprimer.setOnAction(e -> {
@@ -319,6 +361,14 @@ public class JavaFX extends Application {
         Scene scene = new Scene(root, WIDTH, HEIGHT, Color.BLACK);
 
         Canvas canvas = new Canvas(WIDTH - 50, HEIGHT);
+
+        Random rand = new Random();
+        for (int i = 0; i < 150; i++) {
+            etoiles.add(new Etoile(
+                    rand.nextDouble() * getWidthSimulation(),
+                    rand.nextDouble() * HEIGHT
+            ));
+        }
         GraphicsContext context = canvas.getGraphicsContext2D();
 
         scene.setOnKeyPressed(e -> {
@@ -326,12 +376,6 @@ public class JavaFX extends Application {
                 Platform.exit();
             }
         });
-
-        // Initialisations
-        ArrierePlan arrierePlan = new ArrierePlan();
-
-
-
 
         AnimationTimer timer = new AnimationTimer() {
 
@@ -363,6 +407,10 @@ public class JavaFX extends Application {
         stage.setTitle("Simulation orbite");
         stage.setResizable(true);
         stage.setScene(scene);
+        stage.setResizable(false);
+        stage.setFullScreen(false);
+        stage.setMaximized(false);
+
         stage.show();
 
     }
@@ -395,14 +443,6 @@ public class JavaFX extends Application {
             s.position(01);
 
 
-
-            /*if (position.getX() > getWidthSimulation()) {
-                position = new Point2D(getWidthSimulation() , position.getY());
-            }
-            if (position.getY() > HEIGHT) {
-                position = new Point2D(position.getX(), HEIGHT);
-            }*/
-
             Point2D pointTrace = new Point2D(s.getX() + s.getTaille().getX() / 2, s.getY() + s.getTaille().getY() / 2);
             s.getTrace().add(pointTrace);
 
@@ -420,19 +460,76 @@ public class JavaFX extends Application {
     private void draw(GraphicsContext gc) {
         gc.clearRect(0, 0, WIDTH, HEIGHT);
 
+        // étoiles
+        gc.setFill(Color.WHITE);
+
+        for (Etoile e : etoiles) {
+            e.update();
+            gc.setGlobalAlpha(e.alpha);
+            gc.fillOval(e.x, e.y, 1.5, 1.5);
+        }
+
+        gc.setGlobalAlpha(1.0);
+
+
+
         //Dessiner les traces d'abord (sous les planètes)
         gc.setLineWidth(1);
         for (Satellite s : satellitesList) {
-            gc.setStroke(s.couleur.deriveColor(0, 1, 1, 0.5)); // Trace semi-transparente
+            gc.setStroke(s.couleur.deriveColor(0, 1, 1, 0.3));// Trace semi-transparente
+            gc.setLineDashes(4, 6);
             dessinerTrace(s.getTrace(), gc);
-        }
+        }gc.setLineDashes(null);
+
+        double pulse = (Math.sin(tempsSimulation * 0.00001) + 1) / 2; //val entre 0 et 1
+
+        double facteur = 0.9 + pulse * 0.3; //facteur gonflement rayonnement du soleil
 
         //Dessiner le Soleil
-        gc.setFill(Color.YELLOW);
-        soleil.draw(gc);
+        gc.setFill(Color.rgb(255, 220, 100));
+        gc.fillOval(soleil.getX(), soleil.getY(), soleil.getLargeur(), soleil.getHauteur());
+
+        //effet luisant
+        double cx = soleil.getX() + soleil.getLargeur() / 2;
+        double cy = soleil.getY() + soleil.getHauteur() / 2;
+
+        int rays = 10; // nombre de pointes
+
+        double baseRadius = soleil.getLargeur() / 2 + 5;
+
+        double innerRadius = baseRadius * facteur;
+        double outerRadius = (baseRadius + 12) * facteur;
+
+        double[] xPoints = new double[rays * 2];
+        double[] yPoints = new double[rays * 2];
+
+        for (int i = 0; i < rays * 2; i++) {
+            double angle = i * Math.PI / rays;
+
+            // alterne entre rayon court et long
+            double radius = (i % 2 == 0) ? outerRadius : innerRadius;
+
+            xPoints[i] = cx + Math.cos(angle) * radius;
+            yPoints[i] = cy + Math.sin(angle) * radius;
+        }double alpha = 0.15 + pulse * 0.2; //chang. dynamiques pour effet de pulsations
+
+        // glow semi-transparent
+        gc.setFill(Color.rgb(255, 200, 50, alpha));
+        gc.fillOval(soleil.getX() - 12, soleil.getY() - 12,
+                soleil.getLargeur() + 24, soleil.getHauteur() + 24);
+
+        gc.setFill(Color.rgb(255, 200, 50, 0.25));
+        gc.fillPolygon(xPoints, yPoints, rays * 2);
+
 
         //Dessiner les satellites par-dessus
         for (Satellite s : satellitesList) {
+            //effet lumineux
+            gc.setFill(s.couleur.deriveColor(0, 1, 1, 0.2));
+            gc.fillOval(s.getX() - 3, s.getY() - 3,
+                    s.getLargeur() + 6, s.getHauteur() + 6);
+
+            //les planètes
             gc.setFill(s.couleur);
             s.draw(gc);
         }
