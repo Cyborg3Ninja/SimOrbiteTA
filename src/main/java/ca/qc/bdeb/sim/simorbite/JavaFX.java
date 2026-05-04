@@ -44,12 +44,7 @@ public class JavaFX extends Application {
         put("Rayon", "3;10");
         put("Periastre", "11000000;200000000");
         put("Apoastre", "11000000;200000000");
-        put("Periode theorique","864000;6.312e9"); //min = 10 jours, max = 200 ans
-        /*"Masse du Satellite","1;1",
-            "Masse du Corps Centrale","1;1",
-            "GM","1;1",
-            ,
-            "Corps Centrale","1;1"*/
+        put("Periode theorique","2000000;100000000"); //min ≈ 23 jours, max ≈ 3 ans
     }};
 
 
@@ -418,29 +413,25 @@ public class JavaFX extends Application {
             }
         }
 
-        /*for (int i = 0; i < textFields.size(); i++) {
-            textFields.get(i).setText(String.valueOf(inputsList.get(i)));
-        }*/
-
-        accelerationTemps = sliderTemps.getValue() * 2000000;
+        accelerationTemps = sliderTemps.getValue() * 500000;
 
     }
 
     private void draw(GraphicsContext gc) {
         gc.clearRect(0, 0, WIDTH, HEIGHT);
 
-        // 1. Dessiner les traces d'abord (sous les planètes)
+        //Dessiner les traces d'abord (sous les planètes)
         gc.setLineWidth(1);
         for (Satellite s : satellitesList) {
             gc.setStroke(s.couleur.deriveColor(0, 1, 1, 0.5)); // Trace semi-transparente
             dessinerTrace(s.getTrace(), gc);
         }
 
-        // 2. Dessiner le Soleil
+        //Dessiner le Soleil
         gc.setFill(Color.YELLOW);
         soleil.draw(gc);
 
-        // 3. Dessiner les satellites (par-dessus)
+        //Dessiner les satellites par-dessus
         for (Satellite s : satellitesList) {
             gc.setFill(s.couleur);
             s.draw(gc);
