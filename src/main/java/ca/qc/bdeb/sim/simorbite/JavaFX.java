@@ -236,6 +236,8 @@ public class JavaFX extends Application {
                 double sup = Double.parseDouble(tab[1]);
 
                 Slider slider = new Slider(inf, sup, inf);
+                slider.setMajorTickUnit((sup-inf)/2);
+                slider.setMinorTickCount(0);
                 slider.setShowTickLabels(true);
                 HBox.setHgrow(slider, Priority.ALWAYS);
                 inputsList.add(slider);
